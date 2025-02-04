@@ -235,12 +235,25 @@ async function previewPDF() {
     window.open(pdfURL, "_blank");  // Open the PDF preview in a new tab
 
 }
+async function uploadToDrive(pdfBytes) {
+    let base64PDF = btoa(String.fromCharCode(...new Uint8Array(pdfBytes)));
+
+    fetch("https://script.google.com/macros/s/AKfycbxqE8NAM11aoMeUAhM2ABYkpc1BUhpasR1yn0Q7U046NjXQIeD6uHyrg3FAFFmcO5WzdQ/exec", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pdf: base64PDF }),
+    })
+    .then(response => response.text())
+    .then(data => console.log(data))
+    .catch(error => console.error("Error uploading:", error));
+}
 
 document.getElementById("form230").addEventListener("submit", async function(event) {
     event.preventDefault();
     if (!validateForm()) return;
 
     const pdfBytes = await generateFilledPDF();
+	uploadToDrive(pdfBytes);  // Save PDF to Google Drive
     const blob = new Blob([pdfBytes], { type: "application/pdf" });
     const downloadLink = document.createElement("a");
     downloadLink.href = URL.createObjectURL(blob);
