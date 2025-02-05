@@ -369,7 +369,13 @@ async function handleFormSubmission() {
             showError("Formularul nu este completat corect.");
             return;
         }
+ 	// ✅ Hide error message if submission is successful
+        showError(""); 
 
+        // ✅ Show success message
+        showSuccessMessage();
+        scrollToBottom();
+        console.log("✅ Form submitted successfully.");
         console.log("📄 Generating PDF...");
         const pdfBytes = await generateFilledPDF();
 
