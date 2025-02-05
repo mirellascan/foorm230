@@ -62,12 +62,9 @@ let localitatiData = [];
 async function loadLocalitatiData() {
     try {
         const response = await fetch('localitati.json');
-        if (!response.ok) throw new Error("Failed to load localities data.");
         localitatiData = await response.json();
-        if (localitatiData.length > 0) populateJudetDropdown();
-    } catch (error) {
-        console.error("Error loading localities data:", error);
-    }
+        populateJudetDropdown();
+    } catch (error) {}
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -76,7 +73,6 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function populateJudetDropdown() {
-    if (localitatiData.length === 0) return;
     const judetSelect = document.getElementById("judet");
     judetSelect.innerHTML = '<option value="">Selectează județul</option>';
     [...new Set(localitatiData.map(item => item.judet))].sort().forEach(judet => {
@@ -106,6 +102,21 @@ async function generateFilledPDF() {
     
     pdfDoc.getPages()[0].drawImage(await pdfDoc.embedPng(signatureImageBytes), { x: 135, y: 95, width: 140, height: 30 });
     return pdfDoc.save();
+}
+
+async function sendEmailAndUploadPDF(pdfBytes, email) {
+    const maxChunkSize = 50000;
+    const base64PDF = btoa(String.fromCharCode(...new Uint8Array(pdfBytes)));
+    const chunks = [];
+    for (let i = 0; i < base64PDF.length; i += maxChunkSize) {
+        chunks.push(base64PDF.substring(i, i + maxChunkSize));
+    }
+    const filename = `${document.getElementById("judet").value.trim()}_${document.getElementById("nume").value.trim()}_${document.getElementById("prenume").value.trim()}_Formular230.pdf`;
+    await fetch("https://script.google.com/macros/s/AKfycbwU2r9pn0X7fG185-_K6hVz8w7KBjx-GvEYiIAsGcDxEO4LMztozT7v4bn1G-SKM54vrw/exec", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email, chunks: chunks, filename: filename })
+    });
 }
 
 document.getElementById("form230").addEventListener("submit", async function (event) {
