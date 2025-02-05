@@ -265,7 +265,12 @@ async function previewPDF() {
 }
 async function sendEmailWithPDF(pdfBytes, email) {
     try {
+        console.log("📨 Preparing email...");
+        console.log(`📄 PDF Size: ${pdfBytes.length} bytes`);
+
         let base64PDF = btoa(String.fromCharCode(...new Uint8Array(pdfBytes)));
+
+        console.log(`📄 Base64 PDF Length: ${base64PDF.length} characters`);
 
         const response = await fetch("https://script.google.com/macros/s/AKfycbyoLs1PtD5pdDmMCAXG9qER9jYLBvxdkTEh8AJ-CDeN_bwNvcWd1eQesZvdQLlu3nBowg/exec", {
             method: "POST",
