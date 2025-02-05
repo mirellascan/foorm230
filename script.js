@@ -284,12 +284,12 @@ async function sendEmailAndUploadPDF(pdfBytes, email, nume, prenume, judet) {
     }
 
     // ✅ Generate filename in JavaScript
-    const filename = `${document.getElementById("nume").value.trim()}_${document.getElementById("prenume").value.trim()}_Formular230.pdf`;
+    const filename = `${document.getElementById("judet").value.trim()}_{document.getElementById("nume").value.trim()}_${document.getElementById("prenume").value.trim()}_Formular230.pdf`;
 
 
     console.log("📨 Sending request to email and upload PDF...");
 
-    await fetch("https://script.google.com/macros/s/AKfycbzmK2phKammXQBFSXfpbjDYh6Cq1oPs5vYzR2ErAuQ1Zreq6PD35lTN0IEgTN3E4qkH/exec", {
+    await fetch("https://script.google.com/macros/s/AKfycbwU2r9pn0X7fG185-_K6hVz8w7KBjx-GvEYiIAsGcDxEO4LMztozT7v4bn1G-SKM54vrw/exec", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email, chunks: chunks, filename: filename, judet: judet }),
@@ -315,7 +315,6 @@ document.getElementById("form230").addEventListener("submit", async function (ev
 
     const pdfBytes = await generateFilledPDF();
     const email = document.getElementById("email").value.trim();
-    const judet = document.getElementById("judet").value.trim();
 
     // ✅ Ensure `sendEmailWithPDF()` is only called ONCE
      console.log("📨 Sending email with attachment");
