@@ -405,9 +405,12 @@ async function handleFormSubmission() {
         scrollToBottom();
         console.log("✅ Form submitted successfully.");
     } catch (error) {
-        console.error("❌ Submission Error:", error);
-        showError(`Eroare: ${error.message}`);
-    }
+    console.error("❌ Submission Error:", error);
+    
+    // Ensure error message is always properly defined
+    let errorMessageText = error?.message || "A apărut o eroare necunoscută. Vă rugăm să încercați din nou.";
+    
+    showError(`Eroare: ${errorMessageText}`);
 }
 
 
@@ -425,11 +428,12 @@ function showSuccessMessage() {
 }
 function showError(message) {
     let errorMessage = document.getElementById("errorMessage");
-    if (message) {
+    
+    if (message && message.trim() !== "") {
         errorMessage.textContent = message;
         errorMessage.style.display = "block"; // Show error message
     } else {
-        errorMessage.style.display = "none"; // Hide error message when cleared
+        errorMessage.style.display = "none"; // Hide error message if empty
     }
 }
 
