@@ -89,9 +89,9 @@ fetch('localitati.json')
     .then(response => response.json())
     .then(data => {
         localitatiData = data;
+        console.log("Localități:", localitatiData); // Debugging check
     })
     .catch(error => console.error("Error loading JSON:", error));
-
 // Function to populate `judet` dropdown
 function populateJudetDropdown() {
     const judetSelect = document.getElementById("judet");
