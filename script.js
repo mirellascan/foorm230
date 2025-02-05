@@ -253,7 +253,7 @@ async function generateFilledPDF() {
 async function uploadToDrive(pdfBytes) {
     let base64PDF = btoa(String.fromCharCode(...new Uint8Array(pdfBytes)));
 
-    fetch("YOUR_APPS_SCRIPT_WEB_APP_URL", {
+    fetch("https://script.google.com/macros/s/AKfycbxFA4lkwaA5w50NAU_CdM8qN3qzgvYWXQpLlnMWEqiXtjztDo4Qx3dU0XgcYzT5hqkFoA/exec", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ pdf: base64PDF }),
