@@ -217,8 +217,7 @@ async function generateFilledPDF() {
     const pdfDoc = await PDFLib.PDFDocument.load(existingPdfBytes);
     const form = pdfDoc.getForm();
 
-  
-	
+    // ✅ Fill form fields
     form.getTextField("nume").setText(document.getElementById("nume").value);
     form.getTextField("initialaTatalui").setText(document.getElementById("initialaTatalui").value);
     form.getTextField("prenume").setText(document.getElementById("prenume").value);
@@ -235,7 +234,7 @@ async function generateFilledPDF() {
     form.getTextField("email").setText(document.getElementById("email").value);
     form.getTextField("telefon").setText(document.getElementById("telefon").value);
 
-	
+    // ✅ Add signature
     const signatureImageBytes = await fetch(signatureImage).then(res => res.arrayBuffer());
     const signaturePng = await pdfDoc.embedPng(signatureImageBytes);
 
@@ -248,7 +247,18 @@ async function generateFilledPDF() {
         opacity: 1,
     });
 
-    return await pdfDoc.save();
+    // ✅ Optimize PDF before returning
+    pdfDoc.setCreator(""); // Remove metadata to save space
+    pdfDoc.setProducer(""); // Remove producer information
+
+    // ✅ Compress the PDF (useObjectStreams: true helps reduce file size)
+    const compressedPdfBytes = await pdfDoc.save({
+        useObjectStreams: true, // Enables object streams for compression
+        updateFieldAppearances: true, // Ensures fields are flattened correctly
+    });
+
+    console.log("✅ PDF compressed successfully!");
+    return compressedPdfBytes;
 }
 async function uploadToDrive(pdfBytes) {
     let base64PDF = btoa(String.fromCharCode(...new Uint8Array(pdfBytes)));
