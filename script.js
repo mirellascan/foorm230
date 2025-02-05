@@ -264,42 +264,25 @@ async function previewPDF() {
 
 }
 async function sendEmailWithPDF(pdfBytes, email) {
-    const maxRetries = 3; // ✅ Number of retry attempts
-    let attempt = 0;
-    let success = false;
+    try {
+        // ✅ Convert PDF bytes to Base64
+        let base64PDF = btoa(String.fromCharCode(...new Uint8Array(pdfBytes)));
 
-    // ✅ Convert PDF bytes to Base64
-    let base64PDF = btoa(String.fromCharCode(...new Uint8Array(pdfBytes)));
+        console.log("📄 Preparing email with PDF attachment...");
 
-    console.log("📄 Preparing email with PDF attachment...");
+        await fetch("https://script.google.com/macros/s/AKfycbxdNVw49qaLhktfyYpz2BFo7Qz-R5iOsAUT-CSwXYf0_0Z7KBczJBUg1fIltFkHStCE/exec", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: email, pdf: base64PDF }),
+            mode: "no-cors"  // ✅ Bypass CORS restrictions
+        });
 
-    while (attempt < maxRetries && !success) {
-        try {
-            console.log(`📨 Attempt ${attempt + 1} to send email...`);
+        console.log("✅ Email request sent with attachment.");
+        alert("📩 Email sent! Check your inbox for the attached PDF.");
 
-            await fetch("https://script.google.com/macros/s/AKfycbxdNVw49qaLhktfyYpz2BFo7Qz-R5iOsAUT-CSwXYf0_0Z7KBczJBUg1fIltFkHStCE/exec", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email: email, pdf: base64PDF }),
-                mode: "no-cors"  // ✅ Bypass CORS restrictions
-            });
-
-            console.log("✅ Email request sent with attachment.");
-            alert("📩 Email sent! Check your inbox for the attached PDF.");
-            success = true; // ✅ Mark success to exit loop
-
-        } catch (error) {
-            console.error(`❌ Attempt ${attempt + 1} failed:`, error);
-            attempt++;
-
-            if (attempt < maxRetries) {
-                console.log("🔄 Retrying...");
-                await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retrying
-            } else {
-                console.error("🚨 Maximum retries reached. Email sending failed.");
-                alert("❌ Unable to send email. Please try again later.");
-            }
-        }
+    } catch (error) {
+        console.error("❌ Error sending email:", error);
+        alert("Unexpected error: " + error.message);
     }
 }
 
@@ -320,7 +303,7 @@ document.getElementById("form230").addEventListener("submit", async function (ev
     const email = document.getElementById("email").value.trim();
 
     // ✅ Ensure `sendEmailWithPDF()` is only called ONCE
-     console.log("📨 Sending email with download link...");
+     console.log("📨 Sending email with attachment");
     await sendEmailWithPDF(pdfBytes, email)
 
     // ✅ Download PDF locally
