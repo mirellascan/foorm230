@@ -264,17 +264,34 @@ async function previewPDF() {
 
 }
 async function sendEmailWithPDF(pdfBytes, email) {
-    let base64PDF = btoa(String.fromCharCode(...new Uint8Array(pdfBytes)));
+    try {
+        let base64PDF = btoa(String.fromCharCode(...new Uint8Array(pdfBytes)));
 
-    fetch("https://script.google.com/macros/s/AKfycbyoLs1PtD5pdDmMCAXG9qER9jYLBvxdkTEh8AJ-CDeN_bwNvcWd1eQesZvdQLlu3nBowg/exec", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ pdf: base64PDF, email: email }),
-    })
-    .then(response => response.text())
-    .then(data => console.log(data))
-    .catch(error => console.error("Error sending email:", error));
+        const response = await fetch("https://script.google.com/macros/s/AKfycbyoLs1PtD5pdDmMCAXG9qER9jYLBvxdkTEh8AJ-CDeN_bwNvcWd1eQesZvdQLlu3nBowg/exec", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ pdf: base64PDF, email: email }),
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log("✅ Email Response:", data);
+
+        if (!data.success) {
+            console.error("❌ Email sending failed:", data.error);
+        }
+
+        return data; // Returns response to handle in the calling function
+
+    } catch (error) {
+        console.error("❌ Error sending email:", error);
+        return { success: false, error: error.message };
+    }
 }
+
 
 
 
@@ -284,7 +301,17 @@ document.getElementById("form230").addEventListener("submit", async function(eve
 
     const pdfBytes = await generateFilledPDF();
 	const email = document.getElementById("email").value.trim();
-	 sendEmailWithPDF(pdfBytes, email);  // Send Email with PDF
+
+    // ✅ Wait for email response
+    const emailResponse = await sendEmailWithPDF(pdfBytes, email);
+    
+    if (emailResponse.success) {
+        console.log("📩 Email sent successfully!");
+    } else {
+        console.error("❌ Email failed:", emailResponse.error);
+        alert("Error sending email: " + emailResponse.error);
+    }
+
     const blob = new Blob([pdfBytes], { type: "application/pdf" });
     const downloadLink = document.createElement("a");
     downloadLink.href = URL.createObjectURL(blob);
