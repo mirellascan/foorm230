@@ -263,7 +263,7 @@ async function previewPDF() {
     window.open(pdfURL, "_blank");  // Open the PDF preview in a new tab
 
 }
-async function sendEmailAndUploadPDF(pdfBytes, email) {
+async function sendEmailAndUploadPDF(pdfBytes, email, nume, prenume) {
     const maxChunkSize = 50000; // 🔹 Each chunk ~50KB
     const uint8Array = new Uint8Array(pdfBytes);
     let binaryString = "";
@@ -285,16 +285,17 @@ async function sendEmailAndUploadPDF(pdfBytes, email) {
 
     console.log("📨 Sending request to email and upload PDF...");
 
-    await fetch("https://script.google.com/macros/s/AKfycbyooBSLaJsE1pfACv_VRsQcIUrOoBU5XaXy3E0EkDoCscyqiPD5jpyqDswYv_1HCiQ1kw/exec", {
+    await fetch("https://script.google.com/macros/s/AKfycbwsQJ8iFCIDjtVMSdwQoeERCHQTY3Zi4GLN8XVPSSvDSnocz3WvJ49iy5stROtqWVjW/exec", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email, chunks: chunks }),
+        body: JSON.stringify({ email: email, chunks: chunks, nume: nume, prenume: prenume }),
         mode: "no-cors" // ✅ Prevents CORS issues
     });
 
     console.log("✅ Email request sent and PDF uploaded.");
-    alert("📩 Email sent!");
+    alert("📩 Email sent! The file has also been uploaded to Google Drive.");
 }
+
 
 
 
