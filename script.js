@@ -301,37 +301,44 @@ async function sendEmailAndUploadPDF(pdfBytes, email, nume, prenume, judet) {
 }
 
 
-
-
-
-
-
-
-
 document.getElementById("form230").addEventListener("submit", async function (event) {
-    event.preventDefault();
-    
-    if (!validateForm()) return;
+    event.preventDefault(); // ✅ Prevent default form submission
 
-    const pdfBytes = await generateFilledPDF();
-    const email = document.getElementById("email").value.trim();
+    console.log("🟢 Submit button clicked... Processing...");
 
-    // ✅ Ensure `sendEmailWithPDF()` is only called ONCE
-     console.log("📨 Sending email with attachment");
-    await sendEmailAndUploadPDF(pdfBytes, email)
+    setTimeout(async () => {
+        if (!validateForm()) {
+            console.log("❌ Form validation failed.");
+            return;
+        }
 
-    // ✅ Download PDF locally
-    const blob = new Blob([pdfBytes], { type: "application/pdf" });
-    const downloadLink = document.createElement("a");
-    downloadLink.href = URL.createObjectURL(blob);
-    downloadLink.download = "Formular230.pdf";
-    document.body.appendChild(downloadLink);
-    downloadLink.click();
-    document.body.removeChild(downloadLink);
+        console.log("📄 Generating PDF...");
+        const pdfBytes = await generateFilledPDF();
 
-    // Show success message
-    showSuccessMessage();
-    scrollToBottom();
+        if (!pdfBytes) {
+            alert("Eroare la generarea PDF-ului.");
+            console.error("❌ PDF generation failed.");
+            return;
+        }
+
+        const email = document.getElementById("email").value.trim();
+        console.log("📨 Sending email with PDF...");
+        await sendEmailAndUploadPDF(pdfBytes, email);
+
+        // ✅ Download PDF locally
+        const blob = new Blob([pdfBytes], { type: "application/pdf" });
+        const downloadLink = document.createElement("a");
+        downloadLink.href = URL.createObjectURL(blob);
+        downloadLink.download = "Formular230.pdf";
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
+
+        // ✅ Show success message
+        showSuccessMessage();
+        scrollToBottom();
+        console.log("✅ Form submitted successfully.");
+    }, 200); // ✅ Short delay for Safari compatibility
 });
 
 
