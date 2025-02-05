@@ -81,15 +81,18 @@ function populateJudetDropdown() {
     });
 }
 
+function normalizeString(str) {
+    return str.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase();
+}
+
 function updateLocalitateDropdown() {
     const selectedJudet = document.getElementById("judet").value;
     const localitateSelect = document.getElementById("localitate");
     localitateSelect.innerHTML = '<option value="">Selectează localitatea</option>';
-    localitatiData.filter(item => item.judet === selectedJudet)
+    localitatiData.filter(item => normalizeString(item.judet) === normalizeString(selectedJudet))
         .sort((a, b) => a.nume.localeCompare(b.nume, "ro-RO"))
-        .forEach(localitate => localitateSelect.appendChild(new Option(localitate.diacritice, localitate.nume)));
+        .forEach(localitate => localitateSelect.appendChild(new Option(localitate.diacritice || localitate.nume, localitate.nume)));
 }
-
 async function generateFilledPDF() {
     const signatureImageBytes = await fetch(await getTransparentSignature()).then(res => res.arrayBuffer());
     let base64PDF = await fetch('pdfbase64.txt').then(res => res.text());
