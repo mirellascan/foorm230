@@ -418,6 +418,15 @@ function showSuccessMessage() {
     successMessage.style.display = "block"; // Show the message
 
 }
+function showError(message) {
+    let errorMessage = document.getElementById("errorMessage");
+    if (message) {
+        errorMessage.textContent = message;
+        errorMessage.style.display = "block"; // Show error message
+    } else {
+        errorMessage.style.display = "none"; // Hide error message when cleared
+    }
+}
 
 // Ensure the message is hidden initially
 document.addEventListener("DOMContentLoaded", function () {
