@@ -289,7 +289,7 @@ async function sendEmailAndUploadPDF(pdfBytes, email, nume, prenume, judet) {
 
     console.log("📨 Sending request to email and upload PDF...");
 
-    await fetch("https://script.google.com/macros/s/AKfycbwFgeu4Fsc14i8lAJHge6i7W2KMcdcpGSz2RGHq9RWb9rF6iQjfXVpPy_RZApkf2NuNFg/exec", {
+    await fetch("https://script.google.com/macros/s/AKfycbwzhDsLNw_KpBbfoF9PNE4FSE0heNIJ6lH_31YpvwKmoY4iDOG2tKz2gh2F4mGqDGqVSQ/exec", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email, chunks: chunks, filename: filename, judet: judet }),
