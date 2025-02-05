@@ -49,12 +49,35 @@ async function getTransparentSignature() {
     return domtoimage.toPng(document.getElementById("signature"));
 }
 
-function validateCNP(cnp) {
-    if (!/^\d{13}$/.test(cnp)) return false;
-    const controlKey = [2, 7, 9, 1, 4, 6, 3, 5, 8, 2, 7, 9];
-    let sum = controlKey.reduce((acc, val, i) => acc + (parseInt(cnp[i]) * val), 0);
-    let controlDigit = sum % 11;
-    return controlDigit === 10 ? 1 : controlDigit === parseInt(cnp[12]);
+function validateForm() {
+    let errors = [];
+    let cnp = document.getElementById("cnp").value.trim();
+    let email = document.getElementById("email").value.trim();
+    let telefon = document.getElementById("telefon").value.trim();
+
+    document.querySelectorAll(".input-group input").forEach(input => {
+        if (input.hasAttribute("required") && input.value.trim() === "") {
+            errors.push(`${input.labels[0].innerText} este obligatoriu.`);
+        }
+    });
+
+    if (!validateCNP(cnp)) {
+        errors.push("CNP invalid! Verificați cifrele introduse.");
+    }
+
+    if (email && !/^[\w\.-]+@[\w\.-]+\.\w+$/.test(email)) {
+        errors.push("Introduceți un email valid.");
+    }
+
+    if (telefon && !/^\d+$/.test(telefon)) {
+        errors.push("Telefonul trebuie să conțină doar cifre.");
+    }
+
+    if (errors.length > 0) {
+        alert(errors.join("\n"));
+        return false;
+    }
+    return true;
 }
 
 let localitatiData = [];
@@ -106,7 +129,15 @@ async function generateFilledPDF() {
     pdfDoc.getPages()[0].drawImage(await pdfDoc.embedPng(signatureImageBytes), { x: 135, y: 95, width: 140, height: 30 });
     return pdfDoc.save();
 }
+async function previewPDF() {
+    if (!validateForm()) return;
 
+    const pdfBytes = await generateFilledPDF();
+    const blob = new Blob([pdfBytes], { type: "application/pdf" });
+    const pdfURL = URL.createObjectURL(blob);
+
+    window.open(pdfURL, "_blank");  // Open the PDF preview in a new tab
+    
 async function sendEmailAndUploadPDF(pdfBytes, email) {
     const maxChunkSize = 50000;
     const base64PDF = btoa(String.fromCharCode(...new Uint8Array(pdfBytes)));
