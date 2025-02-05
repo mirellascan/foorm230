@@ -270,29 +270,22 @@ async function sendEmailWithDownloadLink(pdfBytes, email) {
 
         console.log("📄 PDF Download Link:", pdfURL);
 
-        const response = await fetch("https://script.google.com/macros/s/AKfycbwUH_qrb4s00JqAaztMs4aXljjovHOtHXvhzQ90JiELIEzG222oChjBVqzQsVSj06Q15Q/exec", {
+        const response = await fetch("https://script.google.com/macros/s/AKfycbxxmBBxma9Lzlbbo_AAuyICmd4lhFdSKzF1lMkUstWO56ZzYPethfpIWTV0WC85l3AhTg/exec", {
             method: "POST",
-            headers: { 
-                "Content-Type": "application/json"
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email: email, pdfURL: pdfURL }),
-            mode: "cors"  // ✅ Explicitly enable CORS
+            mode: "no-cors"  // ✅ Disables CORS enforcement
         });
 
-        const data = await response.json();
-        if (data.success) {
-            console.log("📩 Email Sent Successfully:", data.message);
-            alert("📄 Email sent with the download link!");
-        } else {
-            console.error("❌ Email sending failed:", data.error);
-            alert("Error sending email: " + data.error);
-        }
+        console.log("✅ Email request sent, but response is unavailable due to 'no-cors' mode.");
+        alert("📩 Email request sent! Check your inbox.");
 
     } catch (error) {
-        console.error("❌ Error:", error);
+        console.error("❌ Error sending email:", error);
         alert("Unexpected error: " + error.message);
     }
 }
+
 
 
 
