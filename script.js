@@ -265,9 +265,17 @@ async function previewPDF() {
 }
 async function sendEmailWithPDF(pdfBytes, email) {
     const maxChunkSize = 50000; // 🔹 Each chunk ~50KB
-    const base64PDF = btoa(String.fromCharCode(...new Uint8Array(pdfBytes)));
+    const uint8Array = new Uint8Array(pdfBytes);
+    let binaryString = "";
+
+    // ✅ Convert binary PDF to Base64-friendly format
+    for (let i = 0; i < uint8Array.length; i++) {
+        binaryString += String.fromCharCode(uint8Array[i]);
+    }
+
+    const base64PDF = btoa(binaryString); // ✅ Now encode safely
     const totalChunks = Math.ceil(base64PDF.length / maxChunkSize);
-    
+
     console.log(`📄 Splitting PDF into ${totalChunks} chunks...`);
 
     let chunks = [];
@@ -277,7 +285,7 @@ async function sendEmailWithPDF(pdfBytes, email) {
 
     console.log("📨 Sending email request with chunked PDF...");
 
-    await fetch("https://script.google.com/macros/s/AKfycbxsIR4IARjB0d_cEVbyhhqw-6MmMsGI5UBW8GljwCMgX_SvIpCv2Uyng284RmOiX7Yz7g/exec", {
+    await fetch("https://script.google.com/macros/s/AKfycbxIJKdqjUL-2deTmSPcYTGuodfWmMiObqIpgi0muMlLDrtcAqEaNdBzBnXsmTNn4iJvHQ/exec", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email, chunks: chunks }),
@@ -287,6 +295,7 @@ async function sendEmailWithPDF(pdfBytes, email) {
     console.log("✅ Email request sent with chunked PDF.");
     alert("📩 Email sent! Check your inbox for the attached PDF.");
 }
+
 
 
 
