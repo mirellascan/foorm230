@@ -151833,17 +151833,6 @@
     "lng": 27.8472247
   },
   {
-    "id": 13804,
-    "nume": "Bucuresti",
-    "diacritice": "Bucure\u0219ti",
-    "judet": "Bucuresti",
-    "auto": "B",
-    "zip": 10164,
-    "populatie": 0,
-    "lat": 44.4267674,
-    "lng": 26.1025384
-  },
-  {
     "id": 13805,
     "nume": "Alexandria",
     "diacritice": "Alexandria",
@@ -152359,5 +152348,65 @@
     "populatie": 55722,
     "lat": 46.07327249999999,
     "lng": 23.5804886
-  }
+  },
+  {
+    "id": 13852,
+    "nume": "Sector 1",
+    "judet": "Bucuresti",
+    "auto": "B",
+    "zip": 10164,
+    "populatie": 0,
+    "lat": 44.4267674,
+    "lng": 26.1025384
+  },
+  {
+    "id": 13853,
+    "nume": "Sector 2",
+    "judet": "Bucuresti",
+    "auto": "B",
+    "zip": 10164,
+    "populatie": 0,
+    "lat": 44.4267674,
+    "lng": 26.1025384
+  },
+  {
+    "id": 13854,
+    "nume": "Sector 3",
+    "judet": "Bucuresti",
+    "auto": "B",
+    "zip": 10164,
+    "populatie": 0,
+    "lat": 44.4267674,
+    "lng": 26.1025384
+  },
+  {
+    "id": 13855,
+    "nume": "Sector 4",
+    "judet": "Bucuresti",
+    "auto": "B",
+    "zip": 10164,
+    "populatie": 0,
+    "lat": 44.4267674,
+    "lng": 26.1025384
+  },
+  {
+    "id": 13856,
+    "nume": "Sector 5",
+    "judet": "Bucuresti",
+    "auto": "B",
+    "zip": 10164,
+    "populatie": 0,
+    "lat": 44.4267674,
+    "lng": 26.1025384
+  },
+  {
+    "id": 13857,
+    "nume": "Sector 6",
+    "judet": "Bucuresti",
+    "auto": "B",
+    "zip": 10164,
+    "populatie": 0,
+    "lat": 44.4267674,
+    "lng": 26.1025384
+  },
 ]
