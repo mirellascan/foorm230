@@ -356,8 +356,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // ✅ Ensure Submit Button Works on iOS Safari
     if (submitButton) {
-        submitButton.addEventListener("touchstart", handlePreview, { passive: true });
-        submitButton.addEventListener("click", handlePreview);
+        submitButton.addEventListener("touchstart", handleFormSubmission, { passive: true });
+        submitButton.addEventListener("click", handleFormSubmission);
     }
 });
 
