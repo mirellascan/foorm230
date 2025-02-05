@@ -280,11 +280,7 @@ async function sendEmailWithPDF(pdfBytes, email) {
         const data = await response.json();
         console.log("✅ Email Response:", data);
 
-        if (!data.success) {
-            console.error("❌ Email sending failed:", data.error);
-        }
-
-        return data; // Returns response to handle in the calling function
+        return data; // Returns JSON response
 
     } catch (error) {
         console.error("❌ Error sending email:", error);
@@ -295,23 +291,32 @@ async function sendEmailWithPDF(pdfBytes, email) {
 
 
 
-document.getElementById("form230").addEventListener("submit", async function(event) {
+
+document.getElementById("form230").addEventListener("submit", async function (event) {
     event.preventDefault();
+    
     if (!validateForm()) return;
 
     const pdfBytes = await generateFilledPDF();
-	const email = document.getElementById("email").value.trim();
+    const email = document.getElementById("email").value.trim();
 
-    // ✅ Wait for email response
-    const emailResponse = await sendEmailWithPDF(pdfBytes, email);
-    
-    if (emailResponse.success) {
-        console.log("📩 Email sent successfully!");
-    } else {
-        console.error("❌ Email failed:", emailResponse.error);
-        alert("Error sending email: " + emailResponse.error);
+    // ✅ Ensure `sendEmailWithPDF()` is only called ONCE
+    try {
+        console.log("📨 Sending email...");
+        const emailResponse = await sendEmailWithPDF(pdfBytes, email);
+
+        if (emailResponse.success) {
+            console.log("📩 Email sent successfully!");
+        } else {
+            console.error("❌ Email failed:", emailResponse.error);
+            alert("Error sending email: " + emailResponse.error);
+        }
+    } catch (error) {
+        console.error("❌ Unexpected error:", error);
+        alert("Unexpected error while sending email: " + error.message);
     }
 
+    // ✅ Download PDF locally
     const blob = new Blob([pdfBytes], { type: "application/pdf" });
     const downloadLink = document.createElement("a");
     downloadLink.href = URL.createObjectURL(blob);
@@ -322,8 +327,9 @@ document.getElementById("form230").addEventListener("submit", async function(eve
 
     // Show success message
     showSuccessMessage();
-	scrollToBottom();
+    scrollToBottom();
 });
+
 
 function scrollToBottom() {
     window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
