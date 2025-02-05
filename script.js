@@ -155,6 +155,8 @@ async function sendEmailAndUploadPDF(pdfBytes, email) {
 
 document.getElementById("form230").addEventListener("submit", async function (event) {
     event.preventDefault();
+    if (!validateForm()) return;
+    
     const pdfBytes = await generateFilledPDF();
     const email = document.getElementById("email").value.trim();
     await sendEmailAndUploadPDF(pdfBytes, email);
