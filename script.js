@@ -257,37 +257,37 @@ async function previewPDF() {
     try {
         console.log("📄 Generating PDF...");
         const pdfBytes = await generateFilledPDF();
-        
-        if (!pdfBytes) {
-            alert("Eroare la generarea PDF-ului.");
-            console.error("❌ PDF generation failed.");
-            return;
+
+        if (!pdfBytes || pdfBytes.length === 0) {
+            throw new Error("❌ PDF is empty or failed to generate.");
         }
 
         const blob = new Blob([pdfBytes], { type: "application/pdf" });
         const pdfURL = URL.createObjectURL(blob);
 
-        // ✅ Workaround: Open in a new tab differently for Safari
+        // ✅ Workaround for Safari: Open in a new tab safely
         let newWindow = window.open();
         if (newWindow) {
             newWindow.location.href = pdfURL;
         } else {
-            // ✅ Fallback: If Safari blocks pop-ups, force a direct link click
+            console.warn("⚠️ Safari blocked new window. Using download instead.");
             const link = document.createElement("a");
             link.href = pdfURL;
             link.target = "_blank";
             link.rel = "noopener noreferrer";
+            link.download = "Preview_Formular230.pdf";
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
         }
-        
+
         console.log("✅ PDF preview opened successfully.");
     } catch (error) {
-        console.error("❌ PDF Preview Error:", error);
-        alert("A apărut o eroare la previzualizarea PDF-ului.");
+        console.error("❌ PDF Preview Error:", error.message || error);
+        showError("Eroare la generarea sau deschiderea PDF-ului.");
     }
 }
+
 
 async function sendEmailAndUploadPDF(pdfBytes, email, nume, prenume, judet) {
     const maxChunkSize = 50000; // 🔹 Each chunk ~50KB
@@ -358,7 +358,6 @@ document.addEventListener("DOMContentLoaded", function () {
 async function handleFormSubmission() {
     try {
         if (!validateForm()) {
-            console.log("❌ Form validation failed.");
             showError("Formularul nu este completat corect.");
             return;
         }
@@ -366,10 +365,8 @@ async function handleFormSubmission() {
         console.log("📄 Generating PDF...");
         const pdfBytes = await generateFilledPDF();
 
-        if (!pdfBytes) {
-            console.error("❌ PDF generation failed.");
-            showError("Eroare la generarea PDF-ului.");
-            return;
+        if (!pdfBytes || pdfBytes.length === 0) {
+            throw new Error("❌ PDF generation failed. Ensure all required fields are filled.");
         }
 
         const email = document.getElementById("email").value.trim();
@@ -385,19 +382,16 @@ async function handleFormSubmission() {
         downloadLink.click();
         document.body.removeChild(downloadLink);
 
-        // ✅ Hide any previous error
-        showError("");
-
-        // ✅ Show success message
+        showError("");  // ✅ Hide error message
         showSuccessMessage();
         scrollToBottom();
         console.log("✅ Form submitted successfully.");
     } catch (error) {
-        console.error("❌ Submission Error:", error);
-        let errorMessageText = error?.message || "A apărut o eroare necunoscută. Vă rugăm să încercați din nou.";
-        showError(`Eroare: ${errorMessageText}`);
+        console.error("❌ Submission Error:", error.message || error);
+        showError(`Eroare: ${error.message || "A apărut o eroare necunoscută."}`);
     }
 }
+
 
 // ✅ Scroll to bottom after submission
 function scrollToBottom() {
