@@ -203,16 +203,17 @@ function validateForm() {
 
 async function generateFilledPDF() {
     const signatureImage = await getTransparentSignature();
-   let base64PDF = '';
 
-fetch('pdfbase64.txt')
-    .then(response => response.text())
-    .then(data => {
-        base64PDF = data;
-    })
-    .catch(error => console.error("Error loading Base64 file:", error));
-    const existingPdfBytes = Uint8Array.from(atob(base64PDF), c => c.charCodeAt(0));
+    // ✅ Ensure PDF Base64 is loaded before proceeding
+    let response = await fetch('pdfbase64.txt');
+    let base64PDF = await response.text();
 
+    if (!base64PDF.startsWith("JVBER")) {  // PDF headers start with '%PDF' (Base64: 'JVBER')
+        console.error("❌ Invalid PDF Base64 data. Make sure `pdfbase64.txt` is properly encoded.");
+        return null; // Stop execution
+    }
+
+    const existingPdfBytes = new Uint8Array([...atob(base64PDF)].map(c => c.charCodeAt(0)));
     const pdfDoc = await PDFLib.PDFDocument.load(existingPdfBytes);
     const form = pdfDoc.getForm();
 
