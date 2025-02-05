@@ -2,6 +2,44 @@ let canvas = document.getElementById("signature");
 let ctx = canvas.getContext("2d");
 let isDrawing = false;
 
+$(document).ready(function () {
+    $("#form230").validate({
+        rules: {
+            nume: { required: true },
+            prenume: { required: true },
+            cnp: { required: true, digits: true, minlength: 13, maxlength: 13 },
+            email: { required: true, email: true },
+            judet: { required: true },
+            localitate: { required: true },
+            strada: { required: true }
+            
+        },
+        messages: {
+            nume: "Introduceți numele!",
+            prenume: "Introduceți prenumele!",
+            cnp: {
+                required: "Introduceți CNP-ul!",
+                digits: "CNP-ul trebuie să conțină doar cifre!",
+                minlength: "CNP-ul trebuie să aibă exact 13 cifre!",
+                maxlength: "CNP-ul trebuie să aibă exact 13 cifre!"
+            },
+            email: "Introduceți o adresă de email validă!",
+            judet: "Selectați județul!",
+            localitate: "Selectați localitatea!",
+            strada: "Introduceți strada!",
+            
+        },
+        errorElement: "span",
+        errorPlacement: function (error, element) {
+            error.addClass("error-message");
+            element.parent().append(error);
+        },
+        submitHandler: function (form) {
+            handleFormSubmission(); // ✅ Calls async function to submit form
+        }
+    });
+});
+
 function getCoordinates(event) {
     if (event.touches) {
         return {
@@ -309,43 +347,42 @@ document.getElementById("form230").addEventListener("submit", function (event) {
     handleFormSubmission();
 });
 
-async function handleFormSubmission() {
-    try {
-        if (!validateForm()) {
-            console.log("❌ Form validation failed.");
-            return;
+function handleFormSubmission() {
+    console.log("🟢 Form submission started...");
+
+    setTimeout(async () => {
+        try {
+            console.log("📄 Generating PDF...");
+            const pdfBytes = await generateFilledPDF();
+
+            if (!pdfBytes) {
+                alert("Eroare la generarea PDF-ului.");
+                console.error("❌ PDF generation failed.");
+                return;
+            }
+
+            const email = $("#email").val().trim();
+            console.log("📨 Sending email with PDF...");
+            await sendEmailAndUploadPDF(pdfBytes, email);
+
+            // ✅ Download PDF locally
+            const blob = new Blob([pdfBytes], { type: "application/pdf" });
+            const downloadLink = document.createElement("a");
+            downloadLink.href = URL.createObjectURL(blob);
+            downloadLink.download = "Formular230.pdf";
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
+
+            // ✅ Show success message
+            showSuccessMessage();
+            scrollToBottom();
+            console.log("✅ Form submitted successfully.");
+        } catch (error) {
+            console.error("❌ Submission Error:", error);
+            alert("A apărut o eroare la trimiterea formularului. Verificați console.log pentru detalii.");
         }
-	// ✅ Show success message
-        showSuccessMessage();
-        scrollToBottom();
-        console.log("📄 Generating PDF...");
-        const pdfBytes = await generateFilledPDF();
-
-        if (!pdfBytes) {
-            alert("Eroare la generarea PDF-ului.");
-            console.error("❌ PDF generation failed.");
-            return;
-        }
-
-        const email = document.getElementById("email").value.trim();
-        console.log("📨 Sending email with PDF...");
-        await sendEmailAndUploadPDF(pdfBytes, email);
-
-        // ✅ Download PDF locally
-        const blob = new Blob([pdfBytes], { type: "application/pdf" });
-        const downloadLink = document.createElement("a");
-        downloadLink.href = URL.createObjectURL(blob);
-        downloadLink.download = "Formular230.pdf";
-        document.body.appendChild(downloadLink);
-        downloadLink.click();
-        document.body.removeChild(downloadLink);
-
-        
-        console.log("✅ Form submitted successfully.");
-    } catch (error) {
-        console.error("❌ Submission Error:", error);
-        alert("A apărut o eroare la trimiterea formularului. Verificați console.log pentru detalii.");
-    }
+    }, 200);
 }
 
 
