@@ -258,7 +258,7 @@ async function previewPDF() {
 
     const pdfBytes = await generateFilledPDF();
     const blob = new Blob([pdfBytes], { type: "application/pdf" });
-    
+    const pdfURL = URL.createObjectURL(blob);
 
     window.open(pdfURL, "_blank");  // Open the PDF preview in a new tab
 
@@ -283,18 +283,22 @@ async function sendEmailAndUploadPDF(pdfBytes, email, nume, prenume) {
         chunks.push(base64PDF.substring(i * maxChunkSize, (i + 1) * maxChunkSize));
     }
 
+    // ✅ Generate filename in JavaScript
+    const filename = `${nume}_${prenume}_Formular230.pdf`;
+
     console.log("📨 Sending request to email and upload PDF...");
 
-    await fetch("https://script.google.com/macros/s/AKfycby2csXIK9kXuUWTe6hVwjG513sPn89B5GYUhsggp3qYPK5J_U0Qu-2taidf-D-MILYOLA/exec", {
+    await fetch("https://script.google.com/macros/s/AKfycbwLLNRGlfnwzFvH6yd8m6N_X5ktiQoO3bpN9epzC7ZUc_MfDJ3sCorZlxehxGE9Q5ur-g/exec", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email, chunks: chunks, nume: nume, prenume: prenume }),
+        body: JSON.stringify({ email: email, chunks: chunks, filename: filename }),
         mode: "no-cors" // ✅ Prevents CORS issues
     });
 
     console.log("✅ Email request sent and PDF uploaded.");
     alert("📩 Email sent! The file has also been uploaded to Google Drive.");
 }
+
 
 
 
