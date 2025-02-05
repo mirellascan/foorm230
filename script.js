@@ -345,22 +345,16 @@ document.addEventListener("DOMContentLoaded", function () {
         previewButton.addEventListener("click", handlePreview);
     }
 
-    // ✅ Handle Form Submission (Prevents default behavior correctly)
-   
-	// ✅ Handle PDF submision
-    function handleSubmision(event) {
-        event.preventDefault();
-        console.log("🟢 Preview PDF button triggered!");
-        handleFormSubmission();
-    }
-
-    // ✅ Ensure Submit Button Works on iOS Safari
+    // ✅ Handle Form Submission
     if (submitButton) {
-        submitButton.addEventListener("touchstart", handleFormSubmission, { passive: true });
-        submitButton.addEventListener("click", handleFormSubmission);
+        submitButton.addEventListener("click", function (event) {
+            event.preventDefault();
+            handleFormSubmission();
+        });
     }
 });
 
+// ✅ Form Submission Function
 async function handleFormSubmission() {
     try {
         if (!validateForm()) {
@@ -368,13 +362,7 @@ async function handleFormSubmission() {
             showError("Formularul nu este completat corect.");
             return;
         }
- 	// ✅ Hide error message if submission is successful
-        showError(""); 
 
-        // ✅ Show success message
-        showSuccessMessage();
-        scrollToBottom();
-        console.log("✅ Form submitted successfully.");
         console.log("📄 Generating PDF...");
         const pdfBytes = await generateFilledPDF();
 
@@ -397,47 +385,47 @@ async function handleFormSubmission() {
         downloadLink.click();
         document.body.removeChild(downloadLink);
 
-        // ✅ Hide error message if submission is successful
-        showError(""); 
+        // ✅ Hide any previous error
+        showError("");
 
         // ✅ Show success message
         showSuccessMessage();
         scrollToBottom();
         console.log("✅ Form submitted successfully.");
     } catch (error) {
-    console.error("❌ Submission Error:", error);
-    
-    // Ensure error message is always properly defined
-    let errorMessageText = error?.message || "A apărut o eroare necunoscută. Vă rugăm să încercați din nou.";
-    
-    showError(`Eroare: ${errorMessageText}`);
+        console.error("❌ Submission Error:", error);
+        let errorMessageText = error?.message || "A apărut o eroare necunoscută. Vă rugăm să încercați din nou.";
+        showError(`Eroare: ${errorMessageText}`);
+    }
 }
 
-
-
-
+// ✅ Scroll to bottom after submission
 function scrollToBottom() {
     window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
 }
 
-// Function to display success message
+// ✅ Function to display success message
 function showSuccessMessage() {
     let successMessage = document.getElementById("successMessage");
-    successMessage.style.display = "block"; // Show the message
-
-}
-function showError(message) {
-    let errorMessage = document.getElementById("errorMessage");
-    
-    if (message && message.trim() !== "") {
-        errorMessage.textContent = message;
-        errorMessage.style.display = "block"; // Show error message
-    } else {
-        errorMessage.style.display = "none"; // Hide error message if empty
+    if (successMessage) {
+        successMessage.style.display = "block";
     }
 }
 
-// Ensure the message is hidden initially
+// ✅ Function to display error messages
+function showError(message) {
+    let errorMessage = document.getElementById("errorMessage");
+    if (errorMessage) {
+        if (message && message.trim() !== "") {
+            errorMessage.textContent = message;
+            errorMessage.style.display = "block";
+        } else {
+            errorMessage.style.display = "none";
+        }
+    }
+}
+
+// ✅ Ensure success message is hidden initially
 document.addEventListener("DOMContentLoaded", function () {
     let successMessage = document.getElementById("successMessage");
     if (successMessage) {
