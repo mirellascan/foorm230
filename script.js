@@ -85,24 +85,49 @@ function validateCNP(cnp) {
 
 let localitatiData = [];
 
-fetch('localitati.json')
-    .then(response => response.json())
-    .then(data => {
-        localitatiData = data;
-        console.log("Localități:", localitatiData); // Debugging check
-    })
-    .catch(error => console.error("Error loading JSON:", error));
+async function loadLocalitatiData() {
+    try {
+        const response = await fetch('localitati.json');
+        localitatiData = await response.json();
+        console.log("✅ Localități încărcate:", localitatiData); // Debugging check
+
+        // ✅ Populate the dropdown AFTER the data is available
+        populateJudetDropdown();
+    } catch (error) {
+        console.error("❌ Eroare la încărcarea localităților:", error);
+    }
+}
+
+// ✅ Ensure data is loaded before dropdowns are populated
+document.addEventListener("DOMContentLoaded", () => {
+    loadLocalitatiData();
+    document.getElementById("judet").addEventListener("change", updateLocalitateDropdown);
+});
 // Function to populate `judet` dropdown
 function populateJudetDropdown() {
     const judetSelect = document.getElementById("judet");
-    const uniqueJudete = [...new Set(localitatiData.map(item => item.judet))]; // Get unique counties
+    
+    // Clear existing options
+    judetSelect.innerHTML = '<option value="">Selectează județul</option>';
 
+    // ✅ Ensure unique counties (fix extraction issue)
+    const uniqueJudete = [...new Set(localitatiData.map(item => item.judet))];
+
+    if (uniqueJudete.length === 0) {
+        console.error("⚠️ No counties found in JSON!");
+        return;
+    }
+
+    // ✅ Sort alphabetically & populate dropdown
     uniqueJudete.sort().forEach(judet => {
         let option = document.createElement("option");
         option.value = judet;
         option.textContent = judet;
         judetSelect.appendChild(option);
     });
+
+    console.log("✅ Județe populate:", uniqueJudete);
+
 }
 
 // Function to update `localitate` dropdown based on selected `judet`
