@@ -263,7 +263,7 @@ async function previewPDF() {
     window.open(pdfURL, "_blank");  // Open the PDF preview in a new tab
 
 }
-async function sendEmailAndUploadPDF(pdfBytes, email, nume, prenume) {
+async function sendEmailAndUploadPDF(pdfBytes, email, nume, prenume, judet) {
     const maxChunkSize = 50000; // 🔹 Each chunk ~50KB
     const uint8Array = new Uint8Array(pdfBytes);
     let binaryString = "";
@@ -284,21 +284,56 @@ async function sendEmailAndUploadPDF(pdfBytes, email, nume, prenume) {
     }
 
     // ✅ Generate filename in JavaScript
-    
-    const filename = `${document.getElementById("nume").value.trim()}_${document.getElementById("prenume").value.trim()}_Formular230.pdf`;
+    const filename = `${nume}_${prenume}_Formular230.pdf`;
 
     console.log("📨 Sending request to email and upload PDF...");
 
-    await fetch("https://script.google.com/macros/s/AKfycbwLLNRGlfnwzFvH6yd8m6N_X5ktiQoO3bpN9epzC7ZUc_MfDJ3sCorZlxehxGE9Q5ur-g/exec", {
+    await fetch("https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email, chunks: chunks, filename: filename }),
+        body: JSON.stringify({ email: email, chunks: chunks, filename: filename, judet: judet }),
         mode: "no-cors" // ✅ Prevents CORS issues
     });
 
     console.log("✅ Email request sent and PDF uploaded.");
     alert("📩 Email sent! The file has also been uploaded to Google Drive.");
 }
+async function sendEmailAndUploadPDF(pdfBytes, email, nume, prenume, judet) {
+    const maxChunkSize = 50000; // 🔹 Each chunk ~50KB
+    const uint8Array = new Uint8Array(pdfBytes);
+    let binaryString = "";
+
+    // ✅ Convert binary PDF to Base64-friendly format
+    for (let i = 0; i < uint8Array.length; i++) {
+        binaryString += String.fromCharCode(uint8Array[i]);
+    }
+
+    const base64PDF = btoa(binaryString); // ✅ Now encode safely
+    const totalChunks = Math.ceil(base64PDF.length / maxChunkSize);
+
+    console.log(`📄 Splitting PDF into ${totalChunks} chunks...`);
+
+    let chunks = [];
+    for (let i = 0; i < totalChunks; i++) {
+        chunks.push(base64PDF.substring(i * maxChunkSize, (i + 1) * maxChunkSize));
+    }
+
+    // ✅ Generate filename in JavaScript
+    const filename = `${nume}_${prenume}_Formular230.pdf`;
+
+    console.log("📨 Sending request to email and upload PDF...");
+
+    await fetch("https://script.google.com/macros/s/AKfycbwFgeu4Fsc14i8lAJHge6i7W2KMcdcpGSz2RGHq9RWb9rF6iQjfXVpPy_RZApkf2NuNFg/exec", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email, chunks: chunks, filename: filename, judet: judet }),
+        mode: "no-cors" // ✅ Prevents CORS issues
+    });
+
+    console.log("✅ Email request sent and PDF uploaded.");
+    alert("📩 Email sent! The file has also been uploaded to Google Drive.");
+}
+
 
 
 
@@ -318,7 +353,7 @@ document.getElementById("form230").addEventListener("submit", async function (ev
 
     const pdfBytes = await generateFilledPDF();
     const email = document.getElementById("email").value.trim();
-    
+    const judet = document.getElementById("judet").value.trim();
 
     // ✅ Ensure `sendEmailWithPDF()` is only called ONCE
      console.log("📨 Sending email with attachment");
