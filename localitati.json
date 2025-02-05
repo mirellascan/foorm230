@@ -152352,6 +152352,7 @@
   {
     "id": 13852,
     "nume": "Sector 1",
+	"diacritice": "Bucure\u015fci",
     "judet": "Bucuresti",
     "auto": "B",
     "zip": 10164,
@@ -152362,6 +152363,7 @@
   {
     "id": 13853,
     "nume": "Sector 2",
+	"diacritice": "Bucure\u015fci",
     "judet": "Bucuresti",
     "auto": "B",
     "zip": 10164,
@@ -152372,6 +152374,7 @@
   {
     "id": 13854,
     "nume": "Sector 3",
+	"diacritice": "Bucure\u015fci",
     "judet": "Bucuresti",
     "auto": "B",
     "zip": 10164,
@@ -152382,6 +152385,7 @@
   {
     "id": 13855,
     "nume": "Sector 4",
+	"diacritice": "Bucure\u015fci",
     "judet": "Bucuresti",
     "auto": "B",
     "zip": 10164,
@@ -152392,6 +152396,7 @@
   {
     "id": 13856,
     "nume": "Sector 5",
+	"diacritice": "Bucure\u015fci",
     "judet": "Bucuresti",
     "auto": "B",
     "zip": 10164,
@@ -152402,6 +152407,7 @@
   {
     "id": 13857,
     "nume": "Sector 6",
+	"diacritice": "Bucure\u015fci",
     "judet": "Bucuresti",
     "auto": "B",
     "zip": 10164,
