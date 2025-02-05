@@ -253,15 +253,18 @@ async function generateFilledPDF() {
 async function uploadToDrive(pdfBytes) {
     let base64PDF = btoa(String.fromCharCode(...new Uint8Array(pdfBytes)));
 
-    fetch("https://script.google.com/macros/s/AKfycbxFA4lkwaA5w50NAU_CdM8qN3qzgvYWXQpLlnMWEqiXtjztDo4Qx3dU0XgcYzT5hqkFoA/exec", {
+    fetch("https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ pdf: base64PDF }),
     })
     .then(response => response.text())
-    .then(data => console.log(data))
-    .catch(error => console.error("Error uploading:", error));
+    .then(data => {
+        console.log("✅ Drive Upload Response:", data); // Logs response but does NOT call itself again
+    })
+    .catch(error => console.error("❌ Error uploading to Drive:", error));
 }
+
 async function previewPDF() {
     if (!validateForm()) return;
 
@@ -278,6 +281,9 @@ document.getElementById("form230").addEventListener("submit", async function(eve
     if (!validateForm()) return;
 
     const pdfBytes = await generateFilledPDF();
+	  // ✅ Call `uploadToDrive` only ONCE
+    await uploadToDrive(pdfBytes);
+	
     const blob = new Blob([pdfBytes], { type: "application/pdf" });
     const downloadLink = document.createElement("a");
     downloadLink.href = URL.createObjectURL(blob);
@@ -286,7 +292,6 @@ document.getElementById("form230").addEventListener("submit", async function(eve
     downloadLink.click();
     document.body.removeChild(downloadLink);
 
-	uploadToDrive(pdfBytes);
     // Show success message
     showSuccessMessage();
 	scrollToBottom();
