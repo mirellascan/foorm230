@@ -263,35 +263,36 @@ async function previewPDF() {
     window.open(pdfURL, "_blank");  // Open the PDF preview in a new tab
 
 }
-async function sendEmailWithPDF(pdfBytes, email) {
+async function sendEmailWithDownloadLink(pdfBytes, email) {
     try {
-        console.log("📨 Preparing email...");
-        console.log(`📄 PDF Size: ${pdfBytes.length} bytes`);
+        // ✅ Generate a temporary download link
+        const blob = new Blob([pdfBytes], { type: "application/pdf" });
+        const pdfURL = URL.createObjectURL(blob);
 
-        let base64PDF = btoa(String.fromCharCode(...new Uint8Array(pdfBytes)));
+        console.log("📄 PDF Download Link:", pdfURL);
 
-        console.log(`📄 Base64 PDF Length: ${base64PDF.length} characters`);
-
-        const response = await fetch("https://script.google.com/macros/s/AKfycbyoLs1PtD5pdDmMCAXG9qER9jYLBvxdkTEh8AJ-CDeN_bwNvcWd1eQesZvdQLlu3nBowg/exec", {
+        // ✅ Send email with this link
+        const response = await fetch("https://script.google.com/macros/s/AKfycbzZ9av_rDwHOl9oG6PnYWdb2R3XnvsbuU983ZQymJRn1mgWQI-vn_rwJREjVh748oJsQw/exec", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ pdf: base64PDF, email: email }),
+            body: JSON.stringify({ email: email, pdfURL: pdfURL }),
         });
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
+        const data = await response.json();
+        if (data.success) {
+            console.log("📩 Email Sent Successfully:", data.message);
+            alert("📄 Email sent with the download link!");
+        } else {
+            console.error("❌ Email sending failed:", data.error);
+            alert("Error sending email: " + data.error);
         }
 
-        const data = await response.json();
-        console.log("✅ Email Response:", data);
-
-        return data; // Returns JSON response
-
     } catch (error) {
-        console.error("❌ Error sending email:", error);
-        return { success: false, error: error.message };
+        console.error("❌ Error:", error);
+        alert("Unexpected error: " + error.message);
     }
 }
+
 
 
 
@@ -306,20 +307,8 @@ document.getElementById("form230").addEventListener("submit", async function (ev
     const email = document.getElementById("email").value.trim();
 
     // ✅ Ensure `sendEmailWithPDF()` is only called ONCE
-    try {
-        console.log("📨 Sending email...");
-        const emailResponse = await sendEmailWithPDF(pdfBytes, email);
-
-        if (emailResponse.success) {
-            console.log("📩 Email sent successfully!");
-        } else {
-            console.error("❌ Email failed:", emailResponse.error);
-            alert("Error sending email: " + emailResponse.error);
-        }
-    } catch (error) {
-        console.error("❌ Unexpected error:", error);
-        alert("Unexpected error while sending email: " + error.message);
-    }
+     console.log("📨 Sending email with download link...");
+    await sendEmailWithDownloadLink(pdfBytes, email);
 
     // ✅ Download PDF locally
     const blob = new Blob([pdfBytes], { type: "application/pdf" });
