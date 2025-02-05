@@ -264,28 +264,29 @@ async function previewPDF() {
 
 }
 async function sendEmailWithPDF(pdfBytes, email) {
-    try {
-        // ✅ Convert PDF bytes to Base64
-        let base64PDF = btoa(String.fromCharCode(...new Uint8Array(pdfBytes)));
+    const maxChunkSize = 50000; // 🔹 Each chunk ~50KB
+    const base64PDF = btoa(String.fromCharCode(...new Uint8Array(pdfBytes)));
+    const totalChunks = Math.ceil(base64PDF.length / maxChunkSize);
+    
+    console.log(`📄 Splitting PDF into ${totalChunks} chunks...`);
 
-        console.log("📄 Preparing email with PDF attachment...");
-
-        await fetch("https://script.google.com/macros/s/AKfycbxdNVw49qaLhktfyYpz2BFo7Qz-R5iOsAUT-CSwXYf0_0Z7KBczJBUg1fIltFkHStCE/exec", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email: email, pdf: base64PDF }),
-            mode: "no-cors"  // ✅ Bypass CORS restrictions
-        });
-
-        console.log("✅ Email request sent with attachment.");
-        alert("📩 Email sent! Check your inbox for the attached PDF.");
-
-    } catch (error) {
-        console.error("❌ Error sending email:", error);
-        alert("Unexpected error: " + error.message);
+    let chunks = [];
+    for (let i = 0; i < totalChunks; i++) {
+        chunks.push(base64PDF.substring(i * maxChunkSize, (i + 1) * maxChunkSize));
     }
-}
 
+    console.log("📨 Sending email request with chunked PDF...");
+
+    await fetch("https://script.google.com/macros/s/AKfycbxsIR4IARjB0d_cEVbyhhqw-6MmMsGI5UBW8GljwCMgX_SvIpCv2Uyng284RmOiX7Yz7g/exec", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email, chunks: chunks }),
+        mode: "no-cors" // ✅ Prevents CORS issues
+    });
+
+    console.log("✅ Email request sent with chunked PDF.");
+    alert("📩 Email sent! Check your inbox for the attached PDF.");
+}
 
 
 
