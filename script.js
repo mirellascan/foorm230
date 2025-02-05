@@ -266,7 +266,7 @@ async function previewPDF() {
 async function sendEmailWithPDF(pdfBytes, email) {
     let base64PDF = btoa(String.fromCharCode(...new Uint8Array(pdfBytes)));
 
-    fetch("https://script.google.com/macros/s/AKfycbx54R7ixvUdzzXeZU2mRGV6ZF0ZoaFgfzxwkmchX8g3TD-St9Qr3zKX4jidjNYyZXFopA/exec", {
+    fetch("https://script.google.com/macros/s/AKfycbyoLs1PtD5pdDmMCAXG9qER9jYLBvxdkTEh8AJ-CDeN_bwNvcWd1eQesZvdQLlu3nBowg/exec", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ pdf: base64PDF, email: email }),
