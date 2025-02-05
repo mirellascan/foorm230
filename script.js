@@ -265,17 +265,18 @@ async function previewPDF() {
 }
 async function sendEmailWithDownloadLink(pdfBytes, email) {
     try {
-        // ✅ Generate a temporary download link
         const blob = new Blob([pdfBytes], { type: "application/pdf" });
         const pdfURL = URL.createObjectURL(blob);
 
         console.log("📄 PDF Download Link:", pdfURL);
 
-        // ✅ Send email with this link
-        const response = await fetch("https://script.google.com/macros/s/AKfycbzZ9av_rDwHOl9oG6PnYWdb2R3XnvsbuU983ZQymJRn1mgWQI-vn_rwJREjVh748oJsQw/exec", {
+        const response = await fetch("https://script.google.com/macros/s/AKfycbwUH_qrb4s00JqAaztMs4aXljjovHOtHXvhzQ90JiELIEzG222oChjBVqzQsVSj06Q15Q/exec", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: { 
+                "Content-Type": "application/json"
+            },
             body: JSON.stringify({ email: email, pdfURL: pdfURL }),
+            mode: "cors"  // ✅ Explicitly enable CORS
         });
 
         const data = await response.json();
