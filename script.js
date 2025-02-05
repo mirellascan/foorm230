@@ -284,6 +284,8 @@ async function sendEmailAndUploadPDF(pdfBytes, email, nume, prenume) {
     }
 
     // ✅ Generate filename in JavaScript
+    const nume = document.getElementById("nume").value.trim();
+    const prenume = document.getElementById("prenume").value.trim();
     const filename = `${nume}_${prenume}_Formular230.pdf`;
 
     console.log("📨 Sending request to email and upload PDF...");
@@ -317,8 +319,7 @@ document.getElementById("form230").addEventListener("submit", async function (ev
 
     const pdfBytes = await generateFilledPDF();
     const email = document.getElementById("email").value.trim();
-    const nume = document.getElementById("nume").value.trim();
-    const prenume = document.getElementById("prenume").value.trim();
+    
 
     // ✅ Ensure `sendEmailWithPDF()` is only called ONCE
      console.log("📨 Sending email with attachment");
