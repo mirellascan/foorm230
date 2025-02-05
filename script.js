@@ -301,17 +301,23 @@ async function sendEmailAndUploadPDF(pdfBytes, email, nume, prenume, judet) {
 }
 
 
-document.getElementById("form230").addEventListener("submit", async function (event) {
+document.getElementById("form230").addEventListener("submit", function (event) {
     event.preventDefault(); // ✅ Prevent default form submission
-
     console.log("🟢 Submit button clicked... Processing...");
 
-    setTimeout(async () => {
+    // ✅ Run the async function separately (not directly inside the event listener)
+    handleFormSubmission();
+});
+
+async function handleFormSubmission() {
+    try {
         if (!validateForm()) {
             console.log("❌ Form validation failed.");
             return;
         }
-
+	// ✅ Show success message
+        showSuccessMessage();
+        scrollToBottom();
         console.log("📄 Generating PDF...");
         const pdfBytes = await generateFilledPDF();
 
@@ -334,12 +340,14 @@ document.getElementById("form230").addEventListener("submit", async function (ev
         downloadLink.click();
         document.body.removeChild(downloadLink);
 
-        // ✅ Show success message
-        showSuccessMessage();
-        scrollToBottom();
+        
         console.log("✅ Form submitted successfully.");
-    }, 200); // ✅ Short delay for Safari compatibility
-});
+    } catch (error) {
+        console.error("❌ Submission Error:", error);
+        alert("A apărut o eroare la trimiterea formularului. Verificați console.log pentru detalii.");
+    }
+}
+
 
 
 function scrollToBottom() {
