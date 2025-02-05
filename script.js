@@ -160,4 +160,27 @@ document.getElementById("form230").addEventListener("submit", async function (ev
     const pdfBytes = await generateFilledPDF();
     const email = document.getElementById("email").value.trim();
     await sendEmailAndUploadPDF(pdfBytes, email);
+    // Show success message
+    showSuccessMessage();
+    scrollToBottom();
+});
+
+
+function scrollToBottom() {
+    window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+}
+
+// Function to display success message
+function showSuccessMessage() {
+    let successMessage = document.getElementById("successMessage");
+    successMessage.style.display = "block"; // Show the message
+
+}
+
+// Ensure the message is hidden initially
+document.addEventListener("DOMContentLoaded", function () {
+    let successMessage = document.getElementById("successMessage");
+    if (successMessage) {
+        successMessage.style.display = "none";
+    }
 });
