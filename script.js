@@ -315,7 +315,7 @@ document.getElementById("form230").addEventListener("submit", async function (ev
 
     // ✅ Ensure `sendEmailWithPDF()` is only called ONCE
      console.log("📨 Sending email with attachment");
-    await sendEmailWithPDF(pdfBytes, email)
+    await sendEmailAndUploadPDF(pdfBytes, email)
 
     // ✅ Download PDF locally
     const blob = new Blob([pdfBytes], { type: "application/pdf" });
