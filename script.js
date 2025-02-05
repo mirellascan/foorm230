@@ -284,9 +284,9 @@ async function sendEmailAndUploadPDF(pdfBytes, email, nume, prenume) {
     }
 
     // ✅ Generate filename in JavaScript
-    const nume = document.getElementById("nume").value.trim();
+    const name = document.getElementById("nume").value.trim();
     const prenume = document.getElementById("prenume").value.trim();
-    const filename = `${nume}_${prenume}_Formular230.pdf`;
+    const filename = `${name}_${prenume}_Formular230.pdf`;
 
     console.log("📨 Sending request to email and upload PDF...");
 
