@@ -263,7 +263,7 @@ async function previewPDF() {
     window.open(pdfURL, "_blank");  // Open the PDF preview in a new tab
 
 }
-async function sendEmailWithPDF(pdfBytes, email) {
+async function sendEmailAndUploadPDF(pdfBytes, email) {
     const maxChunkSize = 50000; // 🔹 Each chunk ~50KB
     const uint8Array = new Uint8Array(pdfBytes);
     let binaryString = "";
@@ -283,18 +283,19 @@ async function sendEmailWithPDF(pdfBytes, email) {
         chunks.push(base64PDF.substring(i * maxChunkSize, (i + 1) * maxChunkSize));
     }
 
-    console.log("📨 Sending email request with chunked PDF...");
+    console.log("📨 Sending request to email and upload PDF...");
 
-    await fetch("https://script.google.com/macros/s/AKfycbxIJKdqjUL-2deTmSPcYTGuodfWmMiObqIpgi0muMlLDrtcAqEaNdBzBnXsmTNn4iJvHQ/exec", {
+    await fetch("https://script.google.com/macros/s/AKfycbyooBSLaJsE1pfACv_VRsQcIUrOoBU5XaXy3E0EkDoCscyqiPD5jpyqDswYv_1HCiQ1kw/exec", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email, chunks: chunks }),
         mode: "no-cors" // ✅ Prevents CORS issues
     });
 
-    console.log("✅ Email request sent with chunked PDF.");
-    alert("📩 Email sent! Check your inbox for the attached PDF.");
+    console.log("✅ Email request sent and PDF uploaded.");
+    alert("📩 Email sent!");
 }
+
 
 
 
