@@ -209,7 +209,7 @@ async function generateFilledPDF() {
     let base64PDF = await response.text();
 
     if (!base64PDF.startsWith("JVBER")) {  // PDF headers start with '%PDF' (Base64: 'JVBER')
-        console.error("❌ Invalid PDF Base64 data. Make sure `pdfbase64.txt` is properly encoded.");
+        console.error("❌ Invalid PDF Base64 data. Make sure pdfbase64.txt is properly encoded.");
         return null; // Stop execution
     }
 
@@ -217,7 +217,8 @@ async function generateFilledPDF() {
     const pdfDoc = await PDFLib.PDFDocument.load(existingPdfBytes);
     const form = pdfDoc.getForm();
 
-    // ✅ Fill form fields
+  
+	
     form.getTextField("nume").setText(document.getElementById("nume").value);
     form.getTextField("initialaTatalui").setText(document.getElementById("initialaTatalui").value);
     form.getTextField("prenume").setText(document.getElementById("prenume").value);
@@ -234,7 +235,7 @@ async function generateFilledPDF() {
     form.getTextField("email").setText(document.getElementById("email").value);
     form.getTextField("telefon").setText(document.getElementById("telefon").value);
 
-    // ✅ Add signature
+	
     const signatureImageBytes = await fetch(signatureImage).then(res => res.arrayBuffer());
     const signaturePng = await pdfDoc.embedPng(signatureImageBytes);
 
@@ -247,33 +248,10 @@ async function generateFilledPDF() {
         opacity: 1,
     });
 
-    // ✅ Optimize PDF before returning
-    pdfDoc.setCreator(""); // Remove metadata to save space
-    pdfDoc.setProducer(""); // Remove producer information
-
-    // ✅ Compress the PDF (useObjectStreams: true helps reduce file size)
-    const compressedPdfBytes = await pdfDoc.save({
-        useObjectStreams: true, // Enables object streams for compression
-        updateFieldAppearances: true, // Ensures fields are flattened correctly
-    });
-
-    console.log("✅ PDF compressed successfully!");
-    return compressedPdfBytes;
+    return await pdfDoc.save();
 }
-async function uploadToDrive(pdfBytes) {
-    let base64PDF = btoa(String.fromCharCode(...new Uint8Array(pdfBytes)));
 
-    fetch("https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ pdf: base64PDF }),
-    })
-    .then(response => response.text())
-    .then(data => {
-        console.log("✅ Drive Upload Response:", data); // Logs response but does NOT call itself again
-    })
-    .catch(error => console.error("❌ Error uploading to Drive:", error));
-}
+
 
 async function previewPDF() {
     if (!validateForm()) return;
@@ -285,15 +263,28 @@ async function previewPDF() {
     window.open(pdfURL, "_blank");  // Open the PDF preview in a new tab
 
 }
+async function sendEmailWithPDF(pdfBytes, email) {
+    let base64PDF = btoa(String.fromCharCode(...new Uint8Array(pdfBytes)));
+
+    fetch("YOUR_APPS_SCRIPT_WEB_APP_URL", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pdf: base64PDF, email: email }),
+    })
+    .then(response => response.text())
+    .then(data => console.log(data))
+    .catch(error => console.error("Error sending email:", error));
+}
+
+
 
 document.getElementById("form230").addEventListener("submit", async function(event) {
     event.preventDefault();
     if (!validateForm()) return;
 
     const pdfBytes = await generateFilledPDF();
-	  // ✅ Call `uploadToDrive` only ONCE
-    await uploadToDrive(pdfBytes);
-	
+	const email = document.getElementById("email").value.trim();
+	 sendEmailWithPDF(pdfBytes, email);  // Send Email with PDF
     const blob = new Blob([pdfBytes], { type: "application/pdf" });
     const downloadLink = document.createElement("a");
     downloadLink.href = URL.createObjectURL(blob);
