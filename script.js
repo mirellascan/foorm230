@@ -89,7 +89,7 @@ async function loadLocalitatiData() {
     try {
         const response = await fetch('localitati.json');
         localitatiData = await response.json();
-        console.log("✅ Localități încărcate:", localitatiData); // Debugging check
+        
 
         // ✅ Populate the dropdown AFTER the data is available
         populateJudetDropdown();
@@ -114,7 +114,7 @@ function populateJudetDropdown() {
     const uniqueJudete = [...new Set(localitatiData.map(item => item.judet))];
 
     if (uniqueJudete.length === 0) {
-        console.error("⚠️ No counties found in JSON!");
+        
         return;
     }
 
@@ -125,8 +125,6 @@ function populateJudetDropdown() {
         option.textContent = judet;
         judetSelect.appendChild(option);
     });
-
-    console.log("✅ Județe populate:", uniqueJudete);
 
 }
 
@@ -333,7 +331,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // ✅ Get buttons and form
     const previewButton = document.getElementById("previewPDFBtn");
     const form = document.getElementById("form230");
-    const submitButton = document.querySelector("#form230 button[type='submit']");
+    const submitButton = document.getElementById("submitBtn");
 
     // ✅ Handle PDF Preview (Supports both click & touchstart for iOS Safari)
     function handlePreview(event) {
@@ -348,17 +346,18 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // ✅ Handle Form Submission (Prevents default behavior correctly)
-    form.addEventListener("submit", function (event) {
+   
+	// ✅ Handle PDF submision
+    function handleSubmision(event) {
         event.preventDefault();
-        console.log("🟢 Form submission started...");
+        console.log("🟢 Preview PDF button triggered!");
         handleFormSubmission();
-    });
+    }
 
     // ✅ Ensure Submit Button Works on iOS Safari
     if (submitButton) {
-        submitButton.addEventListener("touchstart", function () {
-            console.log("🟢 Submit button touched on Safari!");
-        }, { passive: true });
+        submitButton.addEventListener("touchstart", handlePreview, { passive: true });
+        submitButton.addEventListener("click", handlePreview);
     }
 });
 
