@@ -263,28 +263,29 @@ async function previewPDF() {
     window.open(pdfURL, "_blank");  // Open the PDF preview in a new tab
 
 }
-async function sendEmailWithDownloadLink(pdfBytes, email) {
+async function sendEmailWithPDF(pdfBytes, email) {
     try {
-        const blob = new Blob([pdfBytes], { type: "application/pdf" });
-        const pdfURL = URL.createObjectURL(blob);
+        // ✅ Convert PDF bytes to Base64
+        let base64PDF = btoa(String.fromCharCode(...new Uint8Array(pdfBytes)));
 
-        console.log("📄 PDF Download Link:", pdfURL);
+        console.log("📄 Preparing email with PDF attachment...");
 
-        const response = await fetch("https://script.google.com/macros/s/AKfycbxxmBBxma9Lzlbbo_AAuyICmd4lhFdSKzF1lMkUstWO56ZzYPethfpIWTV0WC85l3AhTg/exec", {
+        await fetch("https://script.google.com/macros/s/AKfycbxdNVw49qaLhktfyYpz2BFo7Qz-R5iOsAUT-CSwXYf0_0Z7KBczJBUg1fIltFkHStCE/exec", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email: email, pdfURL: pdfURL }),
-            mode: "no-cors"  // ✅ Disables CORS enforcement
+            body: JSON.stringify({ email: email, pdf: base64PDF }),
+            mode: "no-cors"  // ✅ Bypass CORS restrictions
         });
 
-        console.log("✅ Email request sent, but response is unavailable due to 'no-cors' mode.");
-        alert("📩 Email request sent! Check your inbox.");
+        console.log("✅ Email request sent with attachment.");
+        alert("📩 Email sent! Check your inbox for the attached PDF.");
 
     } catch (error) {
         console.error("❌ Error sending email:", error);
         alert("Unexpected error: " + error.message);
     }
 }
+
 
 
 
@@ -302,7 +303,7 @@ document.getElementById("form230").addEventListener("submit", async function (ev
 
     // ✅ Ensure `sendEmailWithPDF()` is only called ONCE
      console.log("📨 Sending email with download link...");
-    await sendEmailWithDownloadLink(pdfBytes, email);
+    await sendEmailWithPDF(pdfBytes, email)
 
     // ✅ Download PDF locally
     const blob = new Blob([pdfBytes], { type: "application/pdf" });
