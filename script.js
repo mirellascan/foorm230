@@ -258,7 +258,7 @@ async function previewPDF() {
 
     const pdfBytes = await generateFilledPDF();
     const blob = new Blob([pdfBytes], { type: "application/pdf" });
-    const pdfURL = URL.createObjectURL(blob);
+    
 
     window.open(pdfURL, "_blank");  // Open the PDF preview in a new tab
 
@@ -313,6 +313,8 @@ document.getElementById("form230").addEventListener("submit", async function (ev
 
     const pdfBytes = await generateFilledPDF();
     const email = document.getElementById("email").value.trim();
+    const nume = document.getElementById("nume").value.trim();
+    const prenume = document.getElementById("prenume").value.trim();
 
     // ✅ Ensure `sendEmailWithPDF()` is only called ONCE
      console.log("📨 Sending email with attachment");
