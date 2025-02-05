@@ -250,7 +250,18 @@ async function generateFilledPDF() {
 
     return await pdfDoc.save();
 }
+async function uploadToDrive(pdfBytes) {
+    let base64PDF = btoa(String.fromCharCode(...new Uint8Array(pdfBytes)));
 
+    fetch("YOUR_APPS_SCRIPT_WEB_APP_URL", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pdf: base64PDF }),
+    })
+    .then(response => response.text())
+    .then(data => console.log(data))
+    .catch(error => console.error("Error uploading:", error));
+}
 async function previewPDF() {
     if (!validateForm()) return;
 
@@ -275,6 +286,7 @@ document.getElementById("form230").addEventListener("submit", async function(eve
     downloadLink.click();
     document.body.removeChild(downloadLink);
 
+	uploadToDrive(pdfBytes);
     // Show success message
     showSuccessMessage();
 	scrollToBottom();
