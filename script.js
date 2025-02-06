@@ -201,6 +201,45 @@ async function handleFormSubmission(event) {
         submitButton.disabled = false;
     }
 }
+async function previewPDF() {
+    if (!validateForm()) return;
+
+    displayMessage("Generating PDF preview...", "info");
+
+    try {
+        console.log("📄 Generating PDF...");
+        const pdfBytes = await generateFilledPDF();
+
+        if (!pdfBytes || pdfBytes.length === 0) {
+            throw new Error("❌ PDF is empty or failed to generate.");
+        }
+
+        const blob = new Blob([pdfBytes], { type: "application/pdf" });
+        const pdfURL = URL.createObjectURL(blob);
+
+        // ✅ Workaround for Safari: Open in a new tab safely
+        let newWindow = window.open();
+        if (newWindow) {
+            newWindow.location.href = pdfURL;
+        } else {
+            console.warn("⚠️ Safari blocked new tab. Using download fallback.");
+            const link = document.createElement("a");
+            link.href = pdfURL;
+            link.target = "_blank";
+            link.rel = "noopener noreferrer";
+            link.download = "Preview_Formular230.pdf";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        console.log("✅ PDF preview opened successfully.");
+        displayMessage("PDF preview generated successfully.", "success");
+    } catch (error) {
+        console.error("❌ PDF Preview Error:", error.message || error);
+        displayMessage("Eroare la generarea sau deschiderea PDF-ului.", "error");
+    }
+}
 
 // ✅ Download PDF
 function downloadPDF(pdfBytes) {
