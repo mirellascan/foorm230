@@ -78,7 +78,31 @@ function validateCNP(cnp) {
 
     return controlDigit === parseInt(cnp[12]);
 }
+// ✅ PDF Generation
+async function getTransparentSignature() {
+    return domtoimage.toPng(canvas);
+}
 
+async function generateFilledPDF() {
+    const signatureImage = await getTransparentSignature();
+    let response = await fetch('pdfbase64.txt');
+    let base64PDF = await response.text();
+
+    const existingPdfBytes = new Uint8Array([...atob(base64PDF)].map(c => c.charCodeAt(0)));
+    const pdfDoc = await PDFLib.PDFDocument.load(existingPdfBytes);
+    const form = pdfDoc.getForm();
+
+    // ✅ Auto-fill form fields
+    ["nume", "initialaTatalui", "prenume", "strada", "numar", "bloc", "scara", "etaj", "apartament", "judet", "localitate", "codPostal", "cnp", "email", "telefon"].forEach(field => {
+        form.getTextField(field).setText(document.getElementById(field).value);
+    });
+
+    const signatureImageBytes = await fetch(signatureImage).then(res => res.arrayBuffer());
+    const signaturePng = await pdfDoc.embedPng(signatureImageBytes);
+
+    pdfDoc.getPages()[0].drawImage(signaturePng, { x: 135, y: 95, width: 140, height: 30, opacity: 1 });
+    return await pdfDoc.save();
+}
 function validateForm() {
     let errors = [];
     let cnp = document.getElementById("cnp").value.trim();
