@@ -104,31 +104,56 @@ function validateForm() {
     return true;
 }
 
-// ✅ PDF Generation
-async function getTransparentSignature() {
-    return domtoimage.toPng(canvas);
+// ✅ Dropdown Population for Județ & Localitate
+let localitatiData = [];
+
+async function loadLocalitatiData() {
+    try {
+        const response = await fetch('localitati.json');
+        localitatiData = await response.json();
+        populateJudetDropdown();
+    } catch (error) {
+        console.error("❌ Error loading localities:", error);
+    }
 }
 
-async function generateFilledPDF() {
-    const signatureImage = await getTransparentSignature();
-    let response = await fetch('pdfbase64.txt');
-    let base64PDF = await response.text();
+function populateJudetDropdown() {
+    const judetSelect = document.getElementById("judet");
+    judetSelect.innerHTML = '<option value="">Selectează județul</option>';
 
-    const existingPdfBytes = new Uint8Array([...atob(base64PDF)].map(c => c.charCodeAt(0)));
-    const pdfDoc = await PDFLib.PDFDocument.load(existingPdfBytes);
-    const form = pdfDoc.getForm();
-
-    // ✅ Auto-fill form fields
-    ["nume", "initialaTatalui", "prenume", "strada", "numar", "bloc", "scara", "etaj", "apartament", "judet", "localitate", "codPostal", "cnp", "email", "telefon"].forEach(field => {
-        form.getTextField(field).setText(document.getElementById(field).value);
+    [...new Set(localitatiData.map(item => item.judet))].sort().forEach(judet => {
+        let option = document.createElement("option");
+        option.value = judet;
+        option.textContent = judet;
+        judetSelect.appendChild(option);
     });
-
-    const signatureImageBytes = await fetch(signatureImage).then(res => res.arrayBuffer());
-    const signaturePng = await pdfDoc.embedPng(signatureImageBytes);
-
-    pdfDoc.getPages()[0].drawImage(signaturePng, { x: 135, y: 95, width: 140, height: 30, opacity: 1 });
-    return await pdfDoc.save();
 }
+
+function updateLocalitateDropdown() {
+    const judetSelect = document.getElementById("judet");
+    const localitateSelect = document.getElementById("localitate");
+
+    localitateSelect.innerHTML = '<option value="">Selectează localitatea</option>';
+    const selectedJudet = judetSelect.value;
+
+    if (!selectedJudet) return;
+
+    const filteredLocalitati = localitatiData
+        .filter(item => item.judet === selectedJudet)
+        .sort((a, b) => a.nume.localeCompare(b.nume, "ro-RO"));
+
+    filteredLocalitati.forEach(localitate => {
+        let option = document.createElement("option");
+        option.value = localitate.nume;
+        option.textContent = localitate.diacritice || localitate.nume;
+        localitateSelect.appendChild(option);
+    });
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    loadLocalitatiData();
+    document.getElementById("judet").addEventListener("change", updateLocalitateDropdown);
+});
 
 // ✅ Form Submission
 async function handleFormSubmission(event) {
@@ -153,7 +178,7 @@ async function handleFormSubmission(event) {
     }
 }
 
-// ✅ Download PDF Locally
+// ✅ Download PDF
 function downloadPDF(pdfBytes) {
     const blob = new Blob([pdfBytes], { type: "application/pdf" });
     const downloadLink = document.createElement("a");
@@ -170,12 +195,12 @@ function displayMessage(text, type) {
     messageDiv.className = type;
 }
 
-// ✅ Handle Email & Google Drive Upload
+// ✅ Send Email & Upload to Google Drive
 async function sendEmailAndUploadPDF(pdfBytes, email) {
     const base64PDF = btoa(String.fromCharCode(...new Uint8Array(pdfBytes)));
     const filename = `${document.getElementById("judet").value.trim()}_${document.getElementById("nume").value.trim()}_${document.getElementById("prenume").value.trim()}_Formular230.pdf`;
 
-    await fetch("YOUR_GOOGLE_APPS_SCRIPT_URL", {
+    await fetch("https://script.google.com/macros/s/AKfycbwU2r9pn0X7fG185-_K6hVz8w7KBjx-GvEYiIAsGcDxEO4LMztozT7v4bn1G-SKM54vrw/exec", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, base64PDF, filename }),
@@ -184,28 +209,3 @@ async function sendEmailAndUploadPDF(pdfBytes, email) {
 
     console.log("✅ Email request sent and PDF uploaded.");
 }
-
-// ✅ Localities Dropdown
-async function loadLocalitatiData() {
-    try {
-        const response = await fetch('localitati.json');
-        localitatiData = await response.json();
-        populateJudetDropdown();
-    } catch (error) {
-        console.error("❌ Error loading localities:", error);
-    }
-}
-
-function populateJudetDropdown() {
-    const judetSelect = document.getElementById("judet");
-    judetSelect.innerHTML = '<option value="">Selectează județul</option>';
-
-    [...new Set(localitatiData.map(item => item.judet))].sort().forEach(judet => {
-        let option = document.createElement("option");
-        option.value = judet;
-        option.textContent = judet;
-        judetSelect.appendChild(option);
-    });
-}
-
-document.addEventListener("DOMContentLoaded", loadLocalitatiData);
