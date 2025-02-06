@@ -257,7 +257,18 @@ function displayMessage(text, type) {
     messageDiv.innerHTML = text;
     messageDiv.className = type;
 }
-
+// ✅ Function to display error messages
+function showError(message) {
+    let errorMessage = document.getElementById("errorMessage");
+    if (errorMessage) {
+        if (message && message.trim() !== "") {
+            errorMessage.textContent = message;
+            errorMessage.style.display = "block";
+        } else {
+            errorMessage.style.display = "none";
+        }
+    }
+}
 // ✅ Send Email & Upload to Google Drive
 async function sendEmailAndUploadPDF(pdfBytes, email) {
     const base64PDF = btoa(String.fromCharCode(...new Uint8Array(pdfBytes)));
