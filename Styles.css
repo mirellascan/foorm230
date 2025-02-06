@@ -1,3 +1,4 @@
+/* General Page Styling */
 body {
     font-family: Arial, sans-serif;
     background-color: #f5f5f5;
@@ -9,9 +10,11 @@ body {
     margin: 0;
     flex-direction: column;
 }
+
+/* Footer Styling */
 .footer {
     background-color: #ED0505; /* Red background */
-    color: white; /* White text */
+    color: white;
     text-align: center;
     padding: 10px 0;
     font-size: 14px;
@@ -20,6 +23,8 @@ body {
     bottom: 0;
     width: 100%;
 }
+
+/* Form Container */
 form {
     background: white;
     padding: 20px;
@@ -29,6 +34,7 @@ form {
     max-width: 750px;
 }
 
+/* Form Header */
 h1 {
     text-align: center;
     color: #333;
@@ -37,6 +43,7 @@ h1 {
     font-weight: bold;
 }
 
+/* Section Titles */
 .section-title {
     font-weight: bold;
     font-size: 20px;
@@ -46,6 +53,7 @@ h1 {
     padding-bottom: 5px;
 }
 
+/* Form Group Layout */
 .form-group {
     display: flex;
     flex-wrap: wrap;
@@ -53,6 +61,7 @@ h1 {
     margin-top: 20px;
 }
 
+/* Input Groups */
 .input-group {
     flex: 1;
     min-width: 200px;
@@ -61,8 +70,9 @@ h1 {
 }
 
 /* Input Fields */
-.input-group input {
-    width: 90%;
+.input-group input, 
+.input-group select {
+    width: 100%;
     padding: 12px;
     border-radius: 5px;
     border: 1px solid #ccc;
@@ -94,49 +104,22 @@ h1 {
 }
 
 /* Input Focus */
-input:focus {
+input:focus, select:focus {
     border-color: #ED0505;
     outline: none;
     box-shadow: 0px 0px 5px rgba(237, 5, 5, 0.3);
 }
 
-/* Select Dropdown Styling */
+/* Dropdown Styling */
 .input-group select {
-    width: 90%;
-    padding: 12px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
-    font-size: 16px;
-    transition: 0.3s;
-    background-color: white;
-    color: black;
     appearance: none; /* Removes default browser styling */
     cursor: pointer;
 }
 
-/* Dropdown Hover Effect */
-.input-group select:hover {
-    border-color: #ED0505;
-}
-
-/* Dropdown Focus Effect */
+/* Dropdown Hover & Focus Effects */
+.input-group select:hover,
 .input-group select:focus {
     border-color: #ED0505;
-    outline: none;
-    box-shadow: 0px 0px 5px rgba(237, 5, 5, 0.3);
-}
-
-/* Dropdown Options Styling */
-.input-group select option {
-    background: white;
-    color: black;
-    padding: 10px;
-}
-
-/* Change dropdown option hover color */
-.input-group select option:hover {
-    background: #ED0505;
-    color: white;
 }
 
 /* Buttons */
@@ -154,12 +137,21 @@ button {
     font-size: 16px;
 }
 
+/* Button Hover & Active Effects */
+button:hover {
+    background-color: #cc0000;
+}
 button:focus {
     outline: 2px solid #ff9b9b;
 }
-
 button:active {
     transform: scale(0.95);
+}
+
+/* Disabled Button */
+button:disabled {
+    background-color: #bbb;
+    cursor: not-allowed;
 }
 
 /* Signature Canvas */
@@ -167,11 +159,28 @@ button:active {
     width: 100%;
     max-width: 750px;
 }
-
 canvas {
     width: 100%;
     height: auto;
     border: 1px solid #ED0505;
+}
+
+/* Success & Error Messages */
+#message.success {
+    color: green;
+}
+#message.error {
+    color: red;
+}
+#message.info {
+    color: orange;
+}
+
+/* Validation Error Messages */
+.error-message {
+    font-size: 12px;
+    color: red;
+    margin-top: 5px;
 }
 
 /* Responsive Design */
