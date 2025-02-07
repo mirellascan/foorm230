@@ -256,12 +256,34 @@ async function generateFilledPDF() {
 async function previewPDF() {
     if (!validateForm()) return;
 
-    const pdfBytes = await generateFilledPDF();
-    const blob = new Blob([pdfBytes], { type: "application/pdf" });
-    const pdfURL = URL.createObjectURL(blob);
+    try {
+        console.log("📄 Generating PDF...");
+        const pdfBytes = await generateFilledPDF();
 
-    window.open(pdfURL, "_blank");  // Open the PDF preview in a new tab
+        if (!pdfBytes || pdfBytes.length === 0) {
+            throw new Error("❌ PDF is empty or failed to generate.");
+        }
 
+        const blob = new Blob([pdfBytes], { type: "application/pdf" });
+        const pdfURL = URL.createObjectURL(blob);
+
+        // ✅ Show PDF in modal
+        const pdfViewer = document.getElementById("pdfViewer");
+        pdfViewer.src = pdfURL;
+
+        const modal = document.getElementById("pdfPreviewModal");
+        modal.style.display = "block";
+
+        console.log("✅ PDF preview loaded in modal.");
+    } catch (error) {
+        console.error("❌ PDF Preview Error:", error.message || error);
+        showError("Eroare la generarea sau deschiderea PDF-ului.");
+    }
+}
+
+// ✅ Close Modal Function
+function closePDFModal() {
+    document.getElementById("pdfPreviewModal").style.display = "none";
 }
 async function sendEmailAndUploadPDF(pdfBytes, email, nume, prenume, judet) {
     const maxChunkSize = 50000; // 🔹 Each chunk ~50KB
