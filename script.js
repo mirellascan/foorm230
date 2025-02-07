@@ -269,15 +269,21 @@ async function previewPDF() {
 
         // ✅ Show PDF in modal
         const pdfViewer = document.getElementById("pdfViewer");
+        if (!pdfViewer) {
+            throw new Error("❌ PDF viewer element not found in the DOM.");
+        }
         pdfViewer.src = pdfURL;
 
         const modal = document.getElementById("pdfPreviewModal");
+        if (!modal) {
+            throw new Error("❌ Modal element not found in the DOM.");
+        }
         modal.style.display = "block";
 
         console.log("✅ PDF preview loaded in modal.");
     } catch (error) {
         console.error("❌ PDF Preview Error:", error.message || error);
-        showError("Eroare la generarea sau deschiderea PDF-ului.");
+        showError(`Eroare: ${error.message || "A apărut o eroare necunoscută."}`);
     }
 }
 
@@ -367,6 +373,26 @@ function showSuccessMessage() {
     successMessage.style.display = "block"; // Show the message
 
 }
+function showError(message) {
+    let errorMessage = document.getElementById("errorMessage");
+    if (!errorMessage) {
+        console.warn("⚠️ No errorMessage element found. Creating one...");
+        errorMessage = document.createElement("p");
+        errorMessage.id = "errorMessage";
+        errorMessage.style.color = "red";
+        errorMessage.style.fontWeight = "bold";
+        errorMessage.style.textAlign = "center";
+        document.body.prepend(errorMessage); // Add to top of body
+    }
+
+    if (message && message.trim() !== "") {
+        errorMessage.textContent = message;
+        errorMessage.style.display = "block"; // Show error message
+    } else {
+        errorMessage.style.display = "none"; // Hide error message if empty
+    }
+}
+
 
 // Ensure the message is hidden initially
 document.addEventListener("DOMContentLoaded", function () {
