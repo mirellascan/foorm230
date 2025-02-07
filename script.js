@@ -373,7 +373,7 @@ async function sendEmailAndUploadPDF(pdfBytes, email, nume, prenume, judet) {
         binaryString += String.fromCharCode(uint8Array[i]);
     }
 
-    const base64PDF = btoa(binaryString); // ✅ Now encode safely
+   // const base64PDF = btoa(binaryString); // ✅ Now encode safely
     const totalChunks = Math.ceil(base64PDF.length / maxChunkSize);
 
     console.log(`📄 Splitting PDF into ${totalChunks} chunks...`);
