@@ -201,7 +201,7 @@ function validateForm() {
 }
 
 
-async function generateFilledPDF() {
+/*async function generateFilledPDF() {
     const signatureImage = await getTransparentSignature();
 
     // ✅ Ensure PDF Base64 is loaded before proceeding
@@ -249,11 +249,56 @@ async function generateFilledPDF() {
     });
 
     return await pdfDoc.save();
+}*/
+
+
+async function generateFilledPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    // Fetch base64 PDF template
+    let response = await fetch('pdfbase64.txt');
+    let base64PDF = await response.text();
+
+    // Basic form field mapping
+    const formFields = [
+        { key: 'nume', y: 30 },
+        { key: 'initialaTatalui', y: 40 },
+        { key: 'prenume', y: 50 },
+        { key: 'strada', y: 70 },
+        { key: 'numar', y: 80 },
+        { key: 'bloc', y: 90 },
+        { key: 'scara', y: 100 },
+        { key: 'etaj', y: 110 },
+        { key: 'apartament', y: 120 },
+        { key: 'judet', y: 140 },
+        { key: 'localitate', y: 150 },
+        { key: 'codPostal', y: 160 },
+        { key: 'cnp', y: 180 },
+        { key: 'email', y: 190 },
+        { key: 'telefon', y: 200 }
+    ];
+
+    // Add text fields
+    formFields.forEach(field => {
+        const value = document.getElementById(field.key).value;
+        doc.text(value, 50, field.y);
+    });
+
+    // Signature handling
+    const signatureCanvas = document.getElementById("signature");
+    const signatureDataURL = signatureCanvas.toDataURL('image/png');
+    
+    // Add signature image
+    doc.addImage(signatureDataURL, 'PNG', 50, 220, 100, 30);
+
+    // Save PDF
+    return doc.output('arraybuffer');
 }
 
 
 
-async function previewPDF() {
+/*async function previewPDF() {
     if (!validateForm()) return;
 
     try {
@@ -290,8 +335,35 @@ async function previewPDF() {
 // ✅ Close Modal Function
 function closePDFModal() {
     document.getElementById("pdfPreviewModal").style.display = "none";
+}*/
+async function previewPDF() {
+    if (!validateForm()) return;
+
+    try {
+        const pdfBytes = await generateFilledPDF();
+        const blob = new Blob([pdfBytes], { type: "application/pdf" });
+        const pdfURL = URL.createObjectURL(blob);
+
+        let newWindow = window.open();
+        if (newWindow) {
+            newWindow.location.href = pdfURL;
+        } else {
+            const link = document.createElement("a");
+            link.href = pdfURL;
+            link.target = "_blank";
+            link.download = "Preview_Formular230.pdf";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    } catch (error) {
+        console.error("PDF Preview Error:", error);
+        showError("Eroare la generarea PDF-ului.");
+    }
 }
 async function sendEmailAndUploadPDF(pdfBytes, email, nume, prenume, judet) {
+    const base64PDF = btoa(String.fromCharCode.apply(null, new Uint8Array(pdfBytes)));
+//async function sendEmailAndUploadPDF(pdfBytes, email, nume, prenume, judet) {
     const maxChunkSize = 50000; // 🔹 Each chunk ~50KB
     const uint8Array = new Uint8Array(pdfBytes);
     let binaryString = "";
