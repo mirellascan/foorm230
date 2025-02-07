@@ -89,7 +89,7 @@ async function loadLocalitatiData() {
     try {
         const response = await fetch('localitati.json');
         localitatiData = await response.json();
-        
+        console.log("✅ Localități încărcate:", localitatiData); // Debugging check
 
         // ✅ Populate the dropdown AFTER the data is available
         populateJudetDropdown();
@@ -114,7 +114,7 @@ function populateJudetDropdown() {
     const uniqueJudete = [...new Set(localitatiData.map(item => item.judet))];
 
     if (uniqueJudete.length === 0) {
-        
+        console.error("⚠️ No counties found in JSON!");
         return;
     }
 
@@ -125,6 +125,8 @@ function populateJudetDropdown() {
         option.textContent = judet;
         judetSelect.appendChild(option);
     });
+
+    console.log("✅ Județe populate:", uniqueJudete);
 
 }
 
@@ -254,41 +256,13 @@ async function generateFilledPDF() {
 async function previewPDF() {
     if (!validateForm()) return;
 
-    try {
-        console.log("📄 Generating PDF...");
-        const pdfBytes = await generateFilledPDF();
+    const pdfBytes = await generateFilledPDF();
+    const blob = new Blob([pdfBytes], { type: "application/pdf" });
+    const pdfURL = URL.createObjectURL(blob);
 
-        if (!pdfBytes || pdfBytes.length === 0) {
-            throw new Error("❌ PDF is empty or failed to generate.");
-        }
+    window.open(pdfURL, "_blank");  // Open the PDF preview in a new tab
 
-        const blob = new Blob([pdfBytes], { type: "application/pdf" });
-        const pdfURL = URL.createObjectURL(blob);
-
-        // ✅ Workaround for Safari: Open in a new tab safely
-        let newWindow = window.open();
-        if (newWindow) {
-            newWindow.location.href = pdfURL;
-        } else {
-            console.warn("⚠️ Safari blocked new window. Using download instead.");
-            const link = document.createElement("a");
-            link.href = pdfURL;
-            link.target = "_blank";
-            link.rel = "noopener noreferrer";
-            link.download = "Preview_Formular230.pdf";
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-
-        console.log("✅ PDF preview opened successfully.");
-    } catch (error) {
-        console.error("❌ PDF Preview Error:", error.message || error);
-        showError("Eroare la generarea sau deschiderea PDF-ului.");
-    }
 }
-
-
 async function sendEmailAndUploadPDF(pdfBytes, email, nume, prenume, judet) {
     const maxChunkSize = 50000; // 🔹 Each chunk ~50KB
     const uint8Array = new Uint8Array(pdfBytes);
@@ -310,7 +284,7 @@ async function sendEmailAndUploadPDF(pdfBytes, email, nume, prenume, judet) {
     }
 
     // ✅ Generate filename in JavaScript
-    const filename = `${document.getElementById("judet").value.trim()}_${document.getElementById("nume").value.trim()}_${document.getElementById("prenume").value.trim()}_Formular230.pdf`;
+    const filename = `${document.getElementById("judet").value.trim()}_{document.getElementById("nume").value.trim()}_${document.getElementById("prenume").value.trim()}_Formular230.pdf`;
 
 
     console.log("📨 Sending request to email and upload PDF...");
@@ -327,99 +301,52 @@ async function sendEmailAndUploadPDF(pdfBytes, email, nume, prenume, judet) {
 }
 
 
-document.addEventListener("DOMContentLoaded", function () {
-    // ✅ Get buttons and form
-    const previewButton = document.getElementById("previewPDFBtn");
-    const form = document.getElementById("form230");
-    const submitButton = document.getElementById("submitBtn");
 
-    // ✅ Handle PDF Preview (Supports both click & touchstart for iOS Safari)
-    function handlePreview(event) {
-        event.preventDefault();
-        console.log("🟢 Preview PDF button triggered!");
-        previewPDF();
-    }
 
-    if (previewButton) {
-        previewButton.addEventListener("touchstart", handlePreview, { passive: true });
-        previewButton.addEventListener("click", handlePreview);
-    }
 
-    // ✅ Handle Form Submission
-    if (submitButton) {
-        submitButton.addEventListener("click", function (event) {
-            event.preventDefault();
-            handleFormSubmission();
-        });
-    }
+
+
+
+
+document.getElementById("form230").addEventListener("submit", async function (event) {
+    event.preventDefault();
+    
+    if (!validateForm()) return;
+
+    const pdfBytes = await generateFilledPDF();
+    const email = document.getElementById("email").value.trim();
+
+    // ✅ Ensure `sendEmailWithPDF()` is only called ONCE
+     console.log("📨 Sending email with attachment");
+    await sendEmailAndUploadPDF(pdfBytes, email)
+
+    // ✅ Download PDF locally
+    const blob = new Blob([pdfBytes], { type: "application/pdf" });
+    const downloadLink = document.createElement("a");
+    downloadLink.href = URL.createObjectURL(blob);
+    downloadLink.download = "Formular230.pdf";
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+
+    // Show success message
+    showSuccessMessage();
+    scrollToBottom();
 });
 
-// ✅ Form Submission Function
-async function handleFormSubmission() {
-    try {
-        if (!validateForm()) {
-            showError("Formularul nu este completat corect.");
-            return;
-        }
 
-        console.log("📄 Generating PDF...");
-        const pdfBytes = await generateFilledPDF();
-
-        if (!pdfBytes || pdfBytes.length === 0) {
-            throw new Error("❌ PDF generation failed. Ensure all required fields are filled.");
-        }
-
-        const email = document.getElementById("email").value.trim();
-        console.log("📨 Sending email with PDF...");
-        await sendEmailAndUploadPDF(pdfBytes, email);
-
-        // ✅ Download PDF locally
-        const blob = new Blob([pdfBytes], { type: "application/pdf" });
-        const downloadLink = document.createElement("a");
-        downloadLink.href = URL.createObjectURL(blob);
-        downloadLink.download = "Formular230.pdf";
-        document.body.appendChild(downloadLink);
-        downloadLink.click();
-        document.body.removeChild(downloadLink);
-
-        showError("");  // ✅ Hide error message
-        showSuccessMessage();
-        scrollToBottom();
-        console.log("✅ Form submitted successfully.");
-    } catch (error) {
-        console.error("❌ Submission Error:", error.message || error);
-        showError(`Eroare: ${error.message || "A apărut o eroare necunoscută."}`);
-    }
-}
-
-
-// ✅ Scroll to bottom after submission
 function scrollToBottom() {
     window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
 }
 
-// ✅ Function to display success message
+// Function to display success message
 function showSuccessMessage() {
     let successMessage = document.getElementById("successMessage");
-    if (successMessage) {
-        successMessage.style.display = "block";
-    }
+    successMessage.style.display = "block"; // Show the message
+
 }
 
-// ✅ Function to display error messages
-function showError(message) {
-    let errorMessage = document.getElementById("errorMessage");
-    if (errorMessage) {
-        if (message && message.trim() !== "") {
-            errorMessage.textContent = message;
-            errorMessage.style.display = "block";
-        } else {
-            errorMessage.style.display = "none";
-        }
-    }
-}
-
-// ✅ Ensure success message is hidden initially
+// Ensure the message is hidden initially
 document.addEventListener("DOMContentLoaded", function () {
     let successMessage = document.getElementById("successMessage");
     if (successMessage) {
