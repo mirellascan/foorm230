@@ -260,38 +260,39 @@ async function generateFilledPDF() {
     let response = await fetch('pdfbase64.txt');
     let base64PDF = await response.text();
 
-    // Basic form field mapping
-    const formFields = [
-        { key: 'nume', y: 30 },
-        { key: 'initialaTatalui', y: 40 },
-        { key: 'prenume', y: 50 },
-        { key: 'strada', y: 70 },
-        { key: 'numar', y: 80 },
-        { key: 'bloc', y: 90 },
-        { key: 'scara', y: 100 },
-        { key: 'etaj', y: 110 },
-        { key: 'apartament', y: 120 },
-        { key: 'judet', y: 140 },
-        { key: 'localitate', y: 150 },
-        { key: 'codPostal', y: 160 },
-        { key: 'cnp', y: 180 },
-        { key: 'email', y: 190 },
-        { key: 'telefon', y: 200 }
-    ];
+    const form = pdfDoc.getForm();
 
-    // Add text fields
-    formFields.forEach(field => {
-        const value = document.getElementById(field.key).value;
-        doc.text(value, 50, field.y);
-    });
+  
+	
+    form.getTextField("nume").setText(document.getElementById("nume").value);
+    form.getTextField("initialaTatalui").setText(document.getElementById("initialaTatalui").value);
+    form.getTextField("prenume").setText(document.getElementById("prenume").value);
+    form.getTextField("strada").setText(document.getElementById("strada").value);
+    form.getTextField("numar").setText(document.getElementById("numar").value);
+    form.getTextField("bloc").setText(document.getElementById("bloc").value);
+    form.getTextField("scara").setText(document.getElementById("scara").value);
+    form.getTextField("etaj").setText(document.getElementById("etaj").value);
+    form.getTextField("apartament").setText(document.getElementById("apartament").value);
+    form.getTextField("judet").setText(document.getElementById("judet").value);
+    form.getTextField("localitate").setText(document.getElementById("localitate").value);
+    form.getTextField("codPostal").setText(document.getElementById("codPostal").value);
+    form.getTextField("cnp").setText(document.getElementById("cnp").value);
+    form.getTextField("email").setText(document.getElementById("email").value);
+    form.getTextField("telefon").setText(document.getElementById("telefon").value);
+
 
     // Signature handling
     const signatureCanvas = document.getElementById("signature");
     const signatureDataURL = signatureCanvas.toDataURL('image/png');
     
-    // Add signature image
-    doc.addImage(signatureDataURL, 'PNG', 50, 220, 100, 30);
-
+    const page = pdfDoc.getPages()[0];
+    page.drawImage(signaturePng, {
+        x: 135,
+        y: 95,
+        width: 140,
+        height: 30,
+        opacity: 1,
+    });
     // Save PDF
     return doc.output('arraybuffer');
 }
