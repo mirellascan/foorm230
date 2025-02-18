@@ -8,13 +8,18 @@ document.addEventListener('DOMContentLoaded', function() {
             maxWidth: 2.5
         },
         PDF: {
-            signatureScale: 0.5,
-            signaturePosition: { x: 350, y: 100 }
+            signaturePosition: {
+                x: 135,
+                y: 95,
+                width: 140,
+                height: 30,
+                opacity: 1
+            }
         },
         ENDPOINTS: {
             locations: 'localitati.json',
             template: 'pdfbase64.txt',
-            submission: 'YOUR_GOOGLE_APPS_SCRIPT_URL'
+            submission: 'https://script.google.com/macros/s/AKfycbyeViR0X0TJ3a1HM1bL-Fn2p0V9SYDPKwpF94bXDe_hSFMTbk2KtI4mzIE9X-RNhOeFLw/exec'
         }
     };
 
@@ -57,8 +62,9 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     let signaturePad;
+    let pdfTemplate;
 
-    // Initialize SignaturePad
+    // Initialize Signature Pad
     function initializeSignaturePad() {
         const canvas = document.getElementById('signaturePad');
         if (!canvas) {
@@ -68,7 +74,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
         signaturePad = new SignaturePad(canvas, CONFIG.SIGNATURE_PAD);
         handleCanvasResize();
-        return signaturePad;
     }
 
     function handleCanvasResize() {
@@ -82,7 +87,21 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Location Handling
+    // Load PDF Template
+    async function loadPDFTemplate() {
+        try {
+            const response = await fetch(CONFIG.ENDPOINTS.template);
+            if (!response.ok) throw new Error('Failed to load PDF template');
+            
+            const base64Template = await response.text();
+            pdfTemplate = await convertBase64ToBytes(base64Template);
+        } catch (error) {
+            console.error('Error loading PDF template:', error);
+            throw new Error('Nu s-a putut încărca șablonul PDF');
+        }
+    }
+
+    // Location Dropdowns
     async function initializeLocationDropdowns() {
         const judetSelect = document.getElementById('judet');
         const localitateSelect = document.getElementById('localitate');
@@ -126,14 +145,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // PDF Generation
     async function generatePDF(formData, signatureData) {
         try {
-            const templateResponse = await fetch(CONFIG.ENDPOINTS.template);
-            if (!templateResponse.ok) {
-                throw new Error('Failed to load PDF template');
-            }
-            
-            const base64Template = await templateResponse.text();
-            const templateBytes = convertBase64ToBytes(base64Template);
-            const pdfDoc = await PDFLib.PDFDocument.load(templateBytes);
+            const pdfDoc = await PDFLib.PDFDocument.load(pdfTemplate);
             const form = pdfDoc.getForm();
 
             await fillPDFForm(form, formData);
@@ -187,42 +199,36 @@ document.addEventListener('DOMContentLoaded', function() {
             const signatureImage = await pdfDoc.embedPng(signatureBytes);
             const page = pdfDoc.getPages()[0];
             
-            const { width, height } = signatureImage.scale(CONFIG.PDF.signatureScale);
             page.drawImage(signatureImage, {
                 x: CONFIG.PDF.signaturePosition.x,
                 y: CONFIG.PDF.signaturePosition.y,
-                width,
-                height
+                width: CONFIG.PDF.signaturePosition.width,
+                height: CONFIG.PDF.signaturePosition.height,
+                opacity: CONFIG.PDF.signaturePosition.opacity
             });
         } catch (error) {
             throw new Error('Nu s-a putut adăuga semnătura');
         }
     }
 
-    // Utility Functions
-    function convertBase64ToBytes(base64String) {
-        try {
-            const cleanBase64 = base64String.replace(/^data:application\/pdf;base64,/, '');
-            const binaryString = atob(cleanBase64);
-            const bytes = new Uint8Array(binaryString.length);
+    // Form Validation
+    function setupFormValidation() {
+        const form = document.getElementById('form230');
+        form.addEventListener('input', function(e) {
+            const field = e.target;
+            const validator = validators[field.name];
             
-            for (let i = 0; i < binaryString.length; i++) {
-                bytes[i] = binaryString.charCodeAt(i);
+            if (validator) {
+                const isValid = validator.validate ? 
+                    validator.validate(field.value) : 
+                    (field.value === '' && !field.required) || validator.pattern.test(field.value);
+                
+                field.classList.toggle('invalid', !isValid);
+                const errorElement = field.parentElement.querySelector('.error-message');
+                if (errorElement) {
+                    errorElement.textContent = isValid ? '' : validator.message;
+                }
             }
-            
-            return bytes;
-        } catch (error) {
-            console.error('Error converting base64 to bytes:', error);
-            throw new Error('Eroare la procesarea șablonului PDF');
-        }
-    }
-
-    function blobToBase64(blob) {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onloadend = () => resolve(reader.result.split(',')[1]);
-            reader.onerror = reject;
-            reader.readAsDataURL(blob);
         });
     }
 
@@ -235,9 +241,14 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
+        if (signaturePad.isEmpty()) {
+            alert('Vă rugăm să adăugați semnătura');
+            return;
+        }
+
         try {
             const formData = new FormData(event.target);
-            const signatureData = signaturePad?.isEmpty() ? null : signaturePad.toDataURL();
+            const signatureData = signaturePad.toDataURL();
             
             const pdfBytes = await generatePDF(Object.fromEntries(formData), signatureData);
             const pdfBase64 = await blobToBase64(new Blob([pdfBytes]));
@@ -271,9 +282,14 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
+        if (signaturePad.isEmpty()) {
+            alert('Vă rugăm să adăugați semnătura pentru previzualizare');
+            return;
+        }
+
         try {
             const formData = new FormData(form);
-            const signatureData = signaturePad?.isEmpty() ? null : signaturePad.toDataURL();
+            const signatureData = signaturePad.toDataURL();
             
             const pdfBytes = await generatePDF(Object.fromEntries(formData), signatureData);
             const pdfBlob = new Blob([pdfBytes], { type: 'application/pdf' });
@@ -281,54 +297,70 @@ document.addEventListener('DOMContentLoaded', function() {
             
             const modal = document.getElementById('previewModal');
             const pdfPreview = document.getElementById('pdfPreview');
-            pdfPreview.innerHTML = `<iframe src="${pdfUrl}" width="100%" height="100%" frameborder="0"></iframe>`;
+            pdfPreview.innerHTML = `<iframe src="${pdfUrl}" width="100%" height="100%" style="border: none;"></iframe>`;
             modal.classList.remove('hidden');
+
+            document.getElementById('closePreview').addEventListener('click', () => {
+                URL.revokeObjectURL(pdfUrl);
+            }, { once: true });
         } catch (error) {
             alert(error.message || 'Eroare la generarea previzualizării.');
         }
     }
 
-    // Form Field Validation
-    function setupFormValidation() {
-        const form = document.getElementById('form230');
-        form.addEventListener('input', function(e) {
-            const field = e.target;
-            const validator = validators[field.name];
+    // Utility Functions
+    function convertBase64ToBytes(base64String) {
+        try {
+            const cleanBase64 = base64String.replace(/^data:application\/pdf;base64,/, '');
+            const binaryString = atob(cleanBase64);
+            const bytes = new Uint8Array(binaryString.length);
             
-            if (validator) {
-                const isValid = validator.validate ? 
-                    validator.validate(field.value) : 
-                    (field.value === '' && !field.required) || validator.pattern.test(field.value);
-                
-                field.classList.toggle('invalid', !isValid);
-                const errorElement = field.parentElement.querySelector('.error-message');
-                if (errorElement) {
-                    errorElement.textContent = isValid ? '' : validator.message;
-                }
+            for (let i = 0; i < binaryString.length; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
             }
+            
+            return bytes;
+        } catch (error) {
+            console.error('Error converting base64 to bytes:', error);
+            throw new Error('Eroare la procesarea șablonului PDF');
+        }
+    }
+
+    function blobToBase64(blob) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result.split(',')[1]);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
         });
     }
 
     // Initialize
-    function initialize() {
-        initializeSignaturePad();
-        initializeLocationDropdowns();
-        setupFormValidation();
-        
-        // Event Listeners
-        window.addEventListener('resize', handleCanvasResize);
-        document.getElementById('clearSignature')?.addEventListener('click', () => signaturePad?.clear());
-        document.getElementById('form230')?.addEventListener('submit', handleFormSubmit);
-        document.getElementById('previewForm')?.addEventListener('click', handlePreview);
-        document.getElementById('resetForm')?.addEventListener('click', () => {
-            if (confirm('Sunteți sigur că doriți să ștergeți toate datele din formular?')) {
-                document.getElementById('form230').reset();
-                signaturePad?.clear();
-            }
-        });
-        document.getElementById('closePreview')?.addEventListener('click', () => {
-            document.getElementById('previewModal').classList.add('hidden');
-        });
+    async function initialize() {
+        try {
+            await loadPDFTemplate();
+            initializeSignaturePad();
+            await initializeLocationDropdowns();
+            setupFormValidation();
+            
+            // Event Listeners
+            window.addEventListener('resize', handleCanvasResize);
+            document.getElementById('clearSignature')?.addEventListener('click', () => signaturePad?.clear());
+            document.getElementById('form230')?.addEventListener('submit', handleFormSubmit);
+            document.getElementById('previewForm')?.addEventListener('click', handlePreview);
+            document.getElementById('resetForm')?.addEventListener('click', () => {
+                if (confirm('Sunteți sigur că doriți să ștergeți toate datele din formular?')) {
+                    document.getElementById('form230').reset();
+                    signaturePad?.clear();
+                }
+            });
+            document.getElementById('closePreview')?.addEventListener('click', () => {
+                document.getElementById('previewModal').classList.add('hidden');
+            });
+        } catch (error) {
+            console.error('Initialization error:', error);
+            alert('Eroare la inițializarea formularului. Vă rugăm să reîncărcați pagina.');
+        }
     }
 
     // Start initialization
