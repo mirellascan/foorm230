@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Configuration
     const CONFIG = {
         SIGNATURE_PAD: {
             backgroundColor: 'rgb(255, 255, 255)',
@@ -19,10 +18,9 @@ document.addEventListener('DOMContentLoaded', function() {
         ENDPOINTS: {
             locations: 'localitati.json',
             template: 'pdfbase64.txt',
-            submission: 'https://script.google.com/macros/s/AKfycbyeViR0X0TJ3a1HM1bL-Fn2p0V9SYDPKwpF94bXDe_hSFMTbk2KtI4mzIE9X-RNhOeFLw/exec'
+            submission: 'https://script.google.com/macros/s/AKfycbz6Q34ZqcLgGmq-eWFkGgcwXhPruscRR5FNWFBDA0EgJ0cSkf49Rzbe36a48U1BlYQ1Dg/exec'
         }
     };
-
     // Form Validators
     const validators = {
         nume: {
@@ -247,31 +245,54 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         try {
+            const submitButton = event.target.querySelector('button[type="submit"]');
+            submitButton.disabled = true;
+            submitButton.textContent = 'Se procesează...';
+
             const formData = new FormData(event.target);
             const signatureData = signaturePad.toDataURL();
             
             const pdfBytes = await generatePDF(Object.fromEntries(formData), signatureData);
             const pdfBase64 = await blobToBase64(new Blob([pdfBytes]));
             
+            const submitData = {
+                formData: Object.fromEntries(formData),
+                pdf: pdfBase64,
+                filename: `${formData.get('judet')}_${formData.get('nume')}_${formData.get('prenume')}_formular230.pdf`
+            };
+
             const response = await fetch(CONFIG.ENDPOINTS.submission, {
                 method: 'POST',
-                body: JSON.stringify({
-                    formData: Object.fromEntries(formData),
-                    pdf: pdfBase64,
-                    filename: `${formData.get('judet')}_${formData.get('nume')}_${formData.get('prenume')}_formular230`
-                })
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                mode: 'cors',
+                body: JSON.stringify(submitData)
             });
 
-            if (response.ok) {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            
+            if (result.success) {
                 alert('Formularul a fost trimis cu succes!');
                 if (formData.get('trimiteEmail')) {
                     alert('Veți primi formularul pe adresa de email specificată.');
                 }
+                event.target.reset();
+                signaturePad.clear();
             } else {
-                throw new Error('Eroare la trimiterea formularului');
+                throw new Error(result.error || 'Eroare la procesarea formularului');
             }
         } catch (error) {
-            alert(error.message || 'Eroare la trimiterea formularului. Vă rugăm să încercați din nou.');
+            console.error('Submission error:', error);
+            alert('Eroare la trimiterea formularului. Vă rugăm să încercați din nou.');
+        } finally {
+            const submitButton = event.target.querySelector('button[type="submit"]');
+            submitButton.disabled = false;
+            submitButton.textContent = 'Completează și trimite formularul';
         }
     }
 
