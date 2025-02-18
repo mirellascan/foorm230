@@ -1,476 +1,344 @@
-let canvas = document.getElementById("signature");
-let ctx = canvas.getContext("2d");
-let isDrawing = false;
+document.addEventListener("DOMContentLoaded", async function () {
+  // ---------------------------
+  // External Data Fetching
+  // ---------------------------
+  let localitiesData = [];
+  let pdfTemplateBase64 = "";
 
-function getCoordinates(event) {
-    if (event.touches) {
-        return {
-            x: event.touches[0].clientX - canvas.getBoundingClientRect().left,
-            y: event.touches[0].clientY - canvas.getBoundingClientRect().top
-        };
-    } else {
-        return {
-            x: event.offsetX,
-            y: event.offsetY
-        };
+  // Fetch localities data from external JSON file
+  try {
+    const localitiesResponse = await fetch("localitati.json");
+    if (!localitiesResponse.ok) {
+      throw new Error("Failed to fetch localitati.json");
     }
-}
+    localitiesData = await localitiesResponse.json();
+  } catch (error) {
+    console.error("Error loading localities data:", error);
+  }
 
-function startDrawing(event) {
-    event.preventDefault();
-    isDrawing = true;
-    let coords = getCoordinates(event);
-    ctx.beginPath();
-    ctx.moveTo(coords.x, coords.y);
-}
+  // Fetch the PDF template (base64) from external text file
+  try {
+    const pdfResponse = await fetch("pdfbase64.txt");
+    if (!pdfResponse.ok) {
+      throw new Error("Failed to fetch pdfbase64.txt");
+    }
+    pdfTemplateBase64 = await pdfResponse.text();
+  } catch (error) {
+    console.error("Error loading PDF template:", error);
+  }
 
-function draw(event) {
-    if (!isDrawing) return;
-    event.preventDefault();
-    let coords = getCoordinates(event);
+  // ---------------------------
+  // Populate Select Lists
+  // ---------------------------
+  const judetSelect = document.getElementById("judet");
+  const localitateSelect = document.getElementById("localitate");
+
+  function populateJudetSelect() {
+    const counties = [...new Set(localitiesData.map((item) => item.judet))];
+    counties.forEach((judet) => {
+      const option = document.createElement("option");
+      option.value = judet;
+      option.textContent = judet;
+      judetSelect.appendChild(option);
+    });
+  }
+
+  function populateLocalitateSelect(selectedJudet) {
+    localitateSelect.innerHTML =
+      '<option value="">Selectează localitatea</option>';
+    const filtered = localitiesData.filter(
+      (item) => item.judet === selectedJudet
+    );
+    filtered.forEach((item) => {
+      const option = document.createElement("option");
+      option.value = item.nume;
+      option.textContent = item.nume;
+      localitateSelect.appendChild(option);
+    });
+  }
+
+  judetSelect.addEventListener("change", function () {
+    populateLocalitateSelect(this.value);
+  });
+
+  populateJudetSelect();
+
+  // ---------------------------
+  // Signature Canvas Setup
+  // ---------------------------
+  const canvas = document.getElementById("signatureCanvas");
+  const ctx = canvas.getContext("2d");
+  let drawing = false,
+    lastX = 0,
+    lastY = 0;
+
+  function getMousePos(canvas, evt) {
+    const rect = canvas.getBoundingClientRect();
+    let clientX, clientY;
+    if (evt.touches && evt.touches.length > 0) {
+      clientX = evt.touches[0].clientX;
+      clientY = evt.touches[0].clientY;
+    } else {
+      clientX = evt.clientX;
+      clientY = evt.clientY;
+    }
+    return {
+      x: clientX - rect.left,
+      y: clientY - rect.top,
+    };
+  }
+
+  function startDrawing(e) {
+    drawing = true;
+    const pos = getMousePos(canvas, e);
+    lastX = pos.x;
+    lastY = pos.y;
+  }
+
+  function draw(e) {
+    if (!drawing) return;
+    const pos = getMousePos(canvas, e);
+    ctx.strokeStyle = "#0000FF"; // Blue pen color
     ctx.lineWidth = 2;
     ctx.lineCap = "round";
-    ctx.strokeStyle = "#0D47A1";
-    ctx.lineTo(coords.x, coords.y);
+    ctx.beginPath();
+    ctx.moveTo(lastX, lastY);
+    ctx.lineTo(pos.x, pos.y);
     ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(coords.x, coords.y);
-}
+    lastX = pos.x;
+    lastY = pos.y;
+  }
 
-function stopDrawing() {
-    isDrawing = false;
-    ctx.beginPath();
-}
+  function stopDrawing() {
+    drawing = false;
+  }
 
-function clearSignature() {
+  // Mouse events
+  canvas.addEventListener("mousedown", startDrawing);
+  canvas.addEventListener("mousemove", draw);
+  canvas.addEventListener("mouseup", stopDrawing);
+  canvas.addEventListener("mouseout", stopDrawing);
+
+  // Touch events
+  canvas.addEventListener("touchstart", startDrawing);
+  canvas.addEventListener("touchmove", function (e) {
+    e.preventDefault(); // Prevent scrolling while drawing
+    draw(e);
+  });
+  canvas.addEventListener("touchend", stopDrawing);
+
+  // Clear signature functionality
+  document.getElementById("clearSignature").addEventListener("click", function () {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-}
+  });
 
-canvas.addEventListener("mousedown", startDrawing);
-canvas.addEventListener("mousemove", draw);
-canvas.addEventListener("mouseup", stopDrawing);
-canvas.addEventListener("mouseleave", stopDrawing);
-canvas.addEventListener("touchstart", startDrawing);
-canvas.addEventListener("touchmove", draw);
-canvas.addEventListener("touchend", stopDrawing);
-canvas.addEventListener("touchcancel", stopDrawing);
-
-async function getTransparentSignature() {
-    return domtoimage.toPng(document.getElementById("signature"));
-}
-
-function validateCNP(cnp) {
-    if (!/^\d{13}$/.test(cnp)) {
-        alert("CNP trebuie să conțină exact 13 cifre numerice.");
-        return false;
-    }
-
-    const controlKey = [2, 7, 9, 1, 4, 6, 3, 5, 8, 2, 7, 9]; // Fixed control key
+  // ---------------------------
+  // Custom Validation: CNP Checksum
+  // ---------------------------
+  function validateCNP(cnp) {
+    if (!/^\d{13}$/.test(cnp)) return false;
+    const weights = [2, 7, 9, 1, 4, 6, 3, 5, 8, 2, 7, 9];
     let sum = 0;
-
     for (let i = 0; i < 12; i++) {
-        sum += parseInt(cnp[i]) * controlKey[i];
+      sum += parseInt(cnp[i]) * weights[i];
     }
+    let remainder = sum % 11;
+    if (remainder === 10) remainder = 1;
+    return remainder === parseInt(cnp[12]);
+  }
 
-    let controlDigit = sum % 11;
-    if (controlDigit === 10) controlDigit = 1;
+  // ---------------------------
+  // PDF Generation using pdf-lib
+  // ---------------------------
+  async function generatePDF(formData, signatureDataUrl) {
+    const { PDFDocument } = PDFLib;
+    // Convert base64 string to Uint8Array
+    const pdfData = atob(pdfTemplateBase64);
+    const pdfBytes = new Uint8Array(
+      pdfData.split("").map((char) => char.charCodeAt(0))
+    );
+    const pdfDoc = await PDFDocument.load(pdfBytes);
 
-    if (controlDigit !== parseInt(cnp[12])) {
-        //alert("CNP invalid! Control sum mismatch.");
-        return false;
-    }
-
-    return true;
-}
-
-let localitatiData = [];
-
-async function loadLocalitatiData() {
-    try {
-        const response = await fetch('localitati.json');
-        localitatiData = await response.json();
-        console.log("✅ Localități încărcate:", localitatiData); // Debugging check
-
-        // ✅ Populate the dropdown AFTER the data is available
-        populateJudetDropdown();
-    } catch (error) {
-        console.error("❌ Eroare la încărcarea localităților:", error);
-    }
-}
-
-// ✅ Ensure data is loaded before dropdowns are populated
-document.addEventListener("DOMContentLoaded", () => {
-    loadLocalitatiData();
-    document.getElementById("judet").addEventListener("change", updateLocalitateDropdown);
-});
-// Function to populate `judet` dropdown
-function populateJudetDropdown() {
-    const judetSelect = document.getElementById("judet");
-    
-    // Clear existing options
-    judetSelect.innerHTML = '<option value="">Selectează județul</option>';
-
-    // ✅ Ensure unique counties (fix extraction issue)
-    const uniqueJudete = [...new Set(localitatiData.map(item => item.judet))];
-
-    if (uniqueJudete.length === 0) {
-        console.error("⚠️ No counties found in JSON!");
-        return;
-    }
-
-    // ✅ Sort alphabetically & populate dropdown
-    uniqueJudete.sort().forEach(judet => {
-        let option = document.createElement("option");
-        option.value = judet;
-        option.textContent = judet;
-        judetSelect.appendChild(option);
-    });
-
-    console.log("✅ Județe populate:", uniqueJudete);
-
-}
-
-// Function to update `localitate` dropdown based on selected `judet`
-function updateLocalitateDropdown() {
-    const judetSelect = document.getElementById("judet");
-    const localitateSelect = document.getElementById("localitate");
-
-    // Clear previous options
-    localitateSelect.innerHTML = '<option value="">Selectează localitatea</option>';
-
-    const selectedJudet = judetSelect.value;
-    if (!selectedJudet) return; // Exit if no county selected
-
-    // Filter and sort localities alphabetically
-    const filteredLocalitati = localitatiData
-        .filter(item => item.judet === selectedJudet)
-        .sort((a, b) => a.nume.localeCompare(b.nume, "ro-RO")); // Sort alphabetically (Romanian locale)
-
-    // Populate dropdown with sorted localities
-    filteredLocalitati.forEach(localitate => {
-        let option = document.createElement("option");
-        option.value = localitate.nume;
-        option.textContent = localitate.diacritice; // Use diacritic name if available
-        localitateSelect.appendChild(option);
-    });
-}
-
-
-// Attach event listeners
-document.addEventListener("DOMContentLoaded", () => {
-    populateJudetDropdown();
-    document.getElementById("judet").addEventListener("change", updateLocalitateDropdown);
-});
-
-
-// Attach event listeners
-document.addEventListener("DOMContentLoaded", () => {
-    populateJudetDropdown();
-    document.getElementById("judet").addEventListener("change", updateLocalitateDropdown);
-});
-
-function validateForm() {
-    let errors = [];
-    let cnp = document.getElementById("cnp").value.trim();
-    let email = document.getElementById("email").value.trim();
-    let telefon = document.getElementById("telefon").value.trim();
-
-    document.querySelectorAll(".input-group input").forEach(input => {
-        if (input.hasAttribute("required") && input.value.trim() === "") {
-            errors.push(`${input.labels[0].innerText} este obligatoriu.`);
-        }
-    });
-
-    if (!validateCNP(cnp)) {
-        errors.push("CNP invalid! Verificați cifrele introduse.");
-    }
-
-    if (email && !/^[\w\.-]+@[\w\.-]+\.\w+$/.test(email)) {
-        errors.push("Introduceți un email valid.");
-    }
-
-    if (telefon && !/^\d+$/.test(telefon)) {
-        errors.push("Telefonul trebuie să conțină doar cifre.");
-    }
-
-    if (errors.length > 0) {
-        alert(errors.join("\n"));
-        return false;
-    }
-    return true;
-}
-
-
-/*async function generateFilledPDF() {
-    const signatureImage = await getTransparentSignature();
-
-    // ✅ Ensure PDF Base64 is loaded before proceeding
-    let response = await fetch('pdfbase64.txt');
-    let base64PDF = await response.text();
-
-    if (!base64PDF.startsWith("JVBER")) {  // PDF headers start with '%PDF' (Base64: 'JVBER')
-        console.error("❌ Invalid PDF Base64 data. Make sure pdfbase64.txt is properly encoded.");
-        return null; // Stop execution
-    }
-
-    const existingPdfBytes = new Uint8Array([...atob(base64PDF)].map(c => c.charCodeAt(0)));
-    const pdfDoc = await PDFLib.PDFDocument.load(existingPdfBytes);
+    // Example: Assume the PDF has AcroForm fields and fill them accordingly.
+    // (Adjust field names and positions based on your actual PDF template.)
     const form = pdfDoc.getForm();
+    form.getTextField("nume").setText(formData.nume);
+    form.getTextField("initialaTatalui").setText(formData.initialaTatalui);
+    form.getTextField("prenume").setText(formData.prenume);
+    form.getTextField("cnp").setText(formData.cnp);
+    form.getTextField("email").setText(formData.email);
+    form.getTextField("telefon").setText(formData.telefon);
+    form.getTextField("judet").setText(formData.judet);
+    form.getTextField("localitate").setText(formData.localitate);
+    form.getTextField("numar").setText(formData.numar);
+    form.getTextField("strada").setText(formData.strada);
+    form.getTextField("bloc").setText(formData.bloc);
+    form.getTextField("scara").setText(formData.scara);
+    form.getTextField("etaj").setText(formData.etaj);
+    form.getTextField("apartament").setText(formData.apartament);
+    form.getTextField("codPostal").setText(formData.codPostal);
+    form.getTextField("perioada").setText(formData.perioada);
 
-  
-	
-    form.getTextField("nume").setText(document.getElementById("nume").value);
-    form.getTextField("initialaTatalui").setText(document.getElementById("initialaTatalui").value);
-    form.getTextField("prenume").setText(document.getElementById("prenume").value);
-    form.getTextField("strada").setText(document.getElementById("strada").value);
-    form.getTextField("numar").setText(document.getElementById("numar").value);
-    form.getTextField("bloc").setText(document.getElementById("bloc").value);
-    form.getTextField("scara").setText(document.getElementById("scara").value);
-    form.getTextField("etaj").setText(document.getElementById("etaj").value);
-    form.getTextField("apartament").setText(document.getElementById("apartament").value);
-    form.getTextField("judet").setText(document.getElementById("judet").value);
-    form.getTextField("localitate").setText(document.getElementById("localitate").value);
-    form.getTextField("codPostal").setText(document.getElementById("codPostal").value);
-    form.getTextField("cnp").setText(document.getElementById("cnp").value);
-    form.getTextField("email").setText(document.getElementById("email").value);
-    form.getTextField("telefon").setText(document.getElementById("telefon").value);
-
-	
-    const signatureImageBytes = await fetch(signatureImage).then(res => res.arrayBuffer());
-    const signaturePng = await pdfDoc.embedPng(signatureImageBytes);
-
-    const page = pdfDoc.getPages()[0];
-    page.drawImage(signaturePng, {
-        x: 135,
-        y: 95,
-        width: 140,
-        height: 30,
-        opacity: 1,
-    });
-
-    return await pdfDoc.save();
-}*/
-
-
-async function generateFilledPDF() {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-
-    // Fetch base64 PDF template
-    let response = await fetch('pdfbase64.txt');
-    let base64PDF = await response.text();
-
-    const form = pdfDoc.getForm();
-
-  
-	
-    form.getTextField("nume").setText(document.getElementById("nume").value);
-    form.getTextField("initialaTatalui").setText(document.getElementById("initialaTatalui").value);
-    form.getTextField("prenume").setText(document.getElementById("prenume").value);
-    form.getTextField("strada").setText(document.getElementById("strada").value);
-    form.getTextField("numar").setText(document.getElementById("numar").value);
-    form.getTextField("bloc").setText(document.getElementById("bloc").value);
-    form.getTextField("scara").setText(document.getElementById("scara").value);
-    form.getTextField("etaj").setText(document.getElementById("etaj").value);
-    form.getTextField("apartament").setText(document.getElementById("apartament").value);
-    form.getTextField("judet").setText(document.getElementById("judet").value);
-    form.getTextField("localitate").setText(document.getElementById("localitate").value);
-    form.getTextField("codPostal").setText(document.getElementById("codPostal").value);
-    form.getTextField("cnp").setText(document.getElementById("cnp").value);
-    form.getTextField("email").setText(document.getElementById("email").value);
-    form.getTextField("telefon").setText(document.getElementById("telefon").value);
-
-
-    // Signature handling
-    const signatureCanvas = document.getElementById("signature");
-    const signatureDataURL = signatureCanvas.toDataURL('image/png');
-    
-    const page = pdfDoc.getPages()[0];
-    page.drawImage(signaturePng, {
-        x: 135,
-        y: 95,
-        width: 140,
-        height: 30,
-        opacity: 1,
-    });
-    // Save PDF
-    return doc.output('arraybuffer');
-}
-
-
-
-/*async function previewPDF() {
-    if (!validateForm()) return;
-
-    try {
-        console.log("📄 Generating PDF...");
-        const pdfBytes = await generateFilledPDF();
-
-        if (!pdfBytes || pdfBytes.length === 0) {
-            throw new Error("❌ PDF is empty or failed to generate.");
-        }
-
-        const blob = new Blob([pdfBytes], { type: "application/pdf" });
-        const pdfURL = URL.createObjectURL(blob);
-
-        // ✅ Show PDF in modal
-        const pdfViewer = document.getElementById("pdfViewer");
-        if (!pdfViewer) {
-            throw new Error("❌ PDF viewer element not found in the DOM.");
-        }
-        pdfViewer.src = pdfURL;
-
-        const modal = document.getElementById("pdfPreviewModal");
-        if (!modal) {
-            throw new Error("❌ Modal element not found in the DOM.");
-        }
-        modal.style.display = "block";
-
-        console.log("✅ PDF preview loaded in modal.");
-    } catch (error) {
-        console.error("❌ PDF Preview Error:", error.message || error);
-        showError(`Eroare: ${error.message || "A apărut o eroare necunoscută."}`);
-    }
-}
-
-// ✅ Close Modal Function
-function closePDFModal() {
-    document.getElementById("pdfPreviewModal").style.display = "none";
-}*/
-async function previewPDF() {
-    if (!validateForm()) return;
-
-    try {
-        const pdfBytes = await generateFilledPDF();
-        const blob = new Blob([pdfBytes], { type: "application/pdf" });
-        const pdfURL = URL.createObjectURL(blob);
-
-        let newWindow = window.open();
-        if (newWindow) {
-            newWindow.location.href = pdfURL;
-        } else {
-            const link = document.createElement("a");
-            link.href = pdfURL;
-            link.target = "_blank";
-            link.download = "Preview_Formular230.pdf";
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-    } catch (error) {
-        console.error("PDF Preview Error:", error);
-        showError("Eroare la generarea PDF-ului.");
-    }
-}
-async function sendEmailAndUploadPDF(pdfBytes, email, nume, prenume, judet) {
-    const base64PDF = btoa(String.fromCharCode.apply(null, new Uint8Array(pdfBytes)));
-//async function sendEmailAndUploadPDF(pdfBytes, email, nume, prenume, judet) {
-    const maxChunkSize = 50000; // 🔹 Each chunk ~50KB
-    const uint8Array = new Uint8Array(pdfBytes);
-    let binaryString = "";
-
-    // ✅ Convert binary PDF to Base64-friendly format
-    for (let i = 0; i < uint8Array.length; i++) {
-        binaryString += String.fromCharCode(uint8Array[i]);
+    // Embed the signature image if provided
+    if (signatureDataUrl) {
+      const pngImageBytes = await fetch(signatureDataUrl).then((res) =>
+        res.arrayBuffer()
+      );
+      const pngImage = await pdfDoc.embedPng(pngImageBytes);
+      const pages = pdfDoc.getPages();
+      const firstPage = pages[0];
+      // Adjust coordinates and dimensions as needed.
+      firstPage.drawImage(pngImage, {
+        x: 50,
+        y: 50,
+        width: 150,
+        height: 50,
+      });
     }
 
-   // const base64PDF = btoa(binaryString); // ✅ Now encode safely
-    const totalChunks = Math.ceil(base64PDF.length / maxChunkSize);
+    const pdfBytesFinal = await pdfDoc.save();
+    return pdfBytesFinal;
+  }
 
-    console.log(`📄 Splitting PDF into ${totalChunks} chunks...`);
-
-    let chunks = [];
-    for (let i = 0; i < totalChunks; i++) {
-        chunks.push(base64PDF.substring(i * maxChunkSize, (i + 1) * maxChunkSize));
-    }
-
-    // ✅ Generate filename in JavaScript
-    const filename = `${document.getElementById("judet").value.trim()}_${document.getElementById("nume").value.trim()}_${document.getElementById("prenume").value.trim()}_Formular230.pdf`;
-
-
-    console.log("📨 Sending request to email and upload PDF...");
-
-    await fetch("https://script.google.com/macros/s/AKfycbwU2r9pn0X7fG185-_K6hVz8w7KBjx-GvEYiIAsGcDxEO4LMztozT7v4bn1G-SKM54vrw/exec", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email, chunks: chunks, filename: filename, judet: judet }),
-        mode: "no-cors" // ✅ Prevents CORS issues
-    });
-
-    console.log("✅ Email request sent and PDF uploaded.");
-    alert("📩 Email sent! The file has also been uploaded to Google Drive.");
-}
-
-
-
-
-
-
-
-
-
-document.getElementById("form230").addEventListener("submit", async function (event) {
-    event.preventDefault();
-    
-    if (!validateForm()) return;
-
-    const pdfBytes = await generateFilledPDF();
-    const email = document.getElementById("email").value.trim();
-
-    // ✅ Ensure `sendEmailWithPDF()` is only called ONCE
-     console.log("📨 Sending email with attachment");
-    await sendEmailAndUploadPDF(pdfBytes, email)
-
-    // ✅ Download PDF locally
+  // Convert Uint8Array to Blob URL for PDF preview
+  function createBlobUrl(pdfBytes) {
     const blob = new Blob([pdfBytes], { type: "application/pdf" });
-    const downloadLink = document.createElement("a");
-    downloadLink.href = URL.createObjectURL(blob);
-    downloadLink.download = "Formular230.pdf";
-    document.body.appendChild(downloadLink);
-    downloadLink.click();
-    document.body.removeChild(downloadLink);
+    return URL.createObjectURL(blob);
+  }
 
-    // Show success message
-    showSuccessMessage();
-    scrollToBottom();
-});
+  // ---------------------------
+  // Modal for PDF Preview
+  // ---------------------------
+  const modal = document.getElementById("modalPreview");
+  const modalClose = document.querySelector(".modal .close");
+  modalClose.addEventListener("click", function () {
+    modal.style.display = "none";
+  });
 
+  // ---------------------------
+  // Handle Preview Button
+  // ---------------------------
+  document.getElementById("previewForm").addEventListener("click", async function (e) {
+    e.preventDefault();
+    const form = document.getElementById("dataForm");
+    const formData = {
+      nume: form.nume.value,
+      initialaTatalui: form.initialaTatalui.value,
+      prenume: form.prenume.value,
+      cnp: form.cnp.value,
+      email: form.email.value,
+      telefon: form.telefon.value,
+      judet: form.judet.value,
+      localitate: form.localitate.value,
+      numar: form.numar.value,
+      strada: form.strada.value,
+      bloc: form.bloc.value,
+      scara: form.scara.value,
+      etaj: form.etaj.value,
+      apartament: form.apartament.value,
+      codPostal: form.codPostal.value,
+      perioada:
+        (form.an1.checked ? "1 an " : "") +
+        (form.an2.checked ? "2 ani" : ""),
+    };
 
-function scrollToBottom() {
-    window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
-}
-
-// Function to display success message
-function showSuccessMessage() {
-    let successMessage = document.getElementById("successMessage");
-    successMessage.style.display = "block"; // Show the message
-
-}
-function showError(message) {
-    let errorMessage = document.getElementById("errorMessage");
-    if (!errorMessage) {
-        console.warn("⚠️ No errorMessage element found. Creating one...");
-        errorMessage = document.createElement("p");
-        errorMessage.id = "errorMessage";
-        errorMessage.style.color = "red";
-        errorMessage.style.fontWeight = "bold";
-        errorMessage.style.textAlign = "center";
-        document.body.prepend(errorMessage); // Add to top of body
+    // Validate CNP using our custom function
+    if (!validateCNP(formData.cnp)) {
+      alert("CNP invalid!");
+      return;
     }
 
-    if (message && message.trim() !== "") {
-        errorMessage.textContent = message;
-        errorMessage.style.display = "block"; // Show error message
-    } else {
-        errorMessage.style.display = "none"; // Hide error message if empty
-    }
-}
+    // Get signature as a Data URL from the canvas
+    const signatureDataUrl = canvas.toDataURL("image/png");
 
-
-// Ensure the message is hidden initially
-document.addEventListener("DOMContentLoaded", function () {
-    let successMessage = document.getElementById("successMessage");
-    if (successMessage) {
-        successMessage.style.display = "none";
+    try {
+      const pdfBytes = await generatePDF(formData, signatureDataUrl);
+      const blobUrl = createBlobUrl(pdfBytes);
+      document.getElementById("pdfPreview").src = blobUrl;
+      modal.style.display = "block";
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      alert("A apărut o eroare la generarea PDF-ului.");
     }
+  });
+
+  // ---------------------------
+  // Handle Form Submission
+  // ---------------------------
+  document.getElementById("dataForm").addEventListener("submit", async function (e) {
+    e.preventDefault();
+    const form = e.target;
+    const formData = {
+      nume: form.nume.value,
+      initialaTatalui: form.initialaTatalui.value,
+      prenume: form.prenume.value,
+      cnp: form.cnp.value,
+      email: form.email.value,
+      telefon: form.telefon.value,
+      judet: form.judet.value,
+      localitate: form.localitate.value,
+      numar: form.numar.value,
+      strada: form.strada.value,
+      bloc: form.bloc.value,
+      scara: form.scara.value,
+      etaj: form.etaj.value,
+      apartament: form.apartament.value,
+      codPostal: form.codPostal.value,
+      perioada:
+        (form.an1.checked ? "1 an " : "") +
+        (form.an2.checked ? "2 ani" : ""),
+      consimtamantDate: form.consimtamantDate.checked,
+      consimtamantTerms: form.consimtamantTerms.checked,
+      sendByEmail: form.sendByEmail.checked,
+    };
+
+    // Custom CNP validation
+    if (!validateCNP(formData.cnp)) {
+      alert("CNP invalid!");
+      return;
+    }
+
+    // Get signature Data URL
+    const signatureDataUrl = canvas.toDataURL("image/png");
+
+    try {
+      const pdfBytes = await generatePDF(formData, signatureDataUrl);
+      const blobUrl = createBlobUrl(pdfBytes);
+
+      // Prepare payload for the Google Apps Script endpoint
+      const GOOGLE_SCRIPT_URL =
+        "https://script.google.com/macros/s/your-script-id/exec"; // Replace with your actual URL
+      const payload = {
+        fileName: `${formData.judet}_${formData.nume}_${formData.prenume}_formular230H2h.pdf`,
+        pdfBase64: btoa(String.fromCharCode(...pdfBytes)),
+        sendByEmail: formData.sendByEmail,
+        email: formData.email,
+      };
+
+      const response = await fetch(GOOGLE_SCRIPT_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        alert("Formularul a fost trimis cu succes!");
+        form.reset();
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      } else {
+        alert("A apărut o eroare la trimiterea formularului.");
+      }
+    } catch (error) {
+      console.error("Error during form submission:", error);
+      alert("A apărut o eroare la generarea sau trimiterea PDF-ului.");
+    }
+  });
+
+  // Clear signature on form reset
+  document.getElementById("dataForm").addEventListener("reset", function () {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  });
 });
