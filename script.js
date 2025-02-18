@@ -1,344 +1,336 @@
-document.addEventListener("DOMContentLoaded", async function () {
-  // ---------------------------
-  // External Data Fetching
-  // ---------------------------
-  let localitiesData = [];
-  let pdfTemplateBase64 = "";
-
-  // Fetch localities data from external JSON file
-  try {
-    const localitiesResponse = await fetch("localitati.json");
-    if (!localitiesResponse.ok) {
-      throw new Error("Failed to fetch localitati.json");
-    }
-    localitiesData = await localitiesResponse.json();
-  } catch (error) {
-    console.error("Error loading localities data:", error);
-  }
-
-  // Fetch the PDF template (base64) from external text file
-  try {
-    const pdfResponse = await fetch("pdfbase64.txt");
-    if (!pdfResponse.ok) {
-      throw new Error("Failed to fetch pdfbase64.txt");
-    }
-    pdfTemplateBase64 = await pdfResponse.text();
-  } catch (error) {
-    console.error("Error loading PDF template:", error);
-  }
-
-  // ---------------------------
-  // Populate Select Lists
-  // ---------------------------
-  const judetSelect = document.getElementById("judet");
-  const localitateSelect = document.getElementById("localitate");
-
-  function populateJudetSelect() {
-    const counties = [...new Set(localitiesData.map((item) => item.judet))];
-    counties.forEach((judet) => {
-      const option = document.createElement("option");
-      option.value = judet;
-      option.textContent = judet;
-      judetSelect.appendChild(option);
-    });
-  }
-
-  function populateLocalitateSelect(selectedJudet) {
-    localitateSelect.innerHTML =
-      '<option value="">Selectează localitatea</option>';
-    const filtered = localitiesData.filter(
-      (item) => item.judet === selectedJudet
-    );
-    filtered.forEach((item) => {
-      const option = document.createElement("option");
-      option.value = item.nume;
-      option.textContent = item.nume;
-      localitateSelect.appendChild(option);
-    });
-  }
-
-  judetSelect.addEventListener("change", function () {
-    populateLocalitateSelect(this.value);
-  });
-
-  populateJudetSelect();
-
-  // ---------------------------
-  // Signature Canvas Setup
-  // ---------------------------
-  const canvas = document.getElementById("signatureCanvas");
-  const ctx = canvas.getContext("2d");
-  let drawing = false,
-    lastX = 0,
-    lastY = 0;
-
-  function getMousePos(canvas, evt) {
-    const rect = canvas.getBoundingClientRect();
-    let clientX, clientY;
-    if (evt.touches && evt.touches.length > 0) {
-      clientX = evt.touches[0].clientX;
-      clientY = evt.touches[0].clientY;
-    } else {
-      clientX = evt.clientX;
-      clientY = evt.clientY;
-    }
-    return {
-      x: clientX - rect.left,
-      y: clientY - rect.top,
-    };
-  }
-
-  function startDrawing(e) {
-    drawing = true;
-    const pos = getMousePos(canvas, e);
-    lastX = pos.x;
-    lastY = pos.y;
-  }
-
-  function draw(e) {
-    if (!drawing) return;
-    const pos = getMousePos(canvas, e);
-    ctx.strokeStyle = "#0000FF"; // Blue pen color
-    ctx.lineWidth = 2;
-    ctx.lineCap = "round";
-    ctx.beginPath();
-    ctx.moveTo(lastX, lastY);
-    ctx.lineTo(pos.x, pos.y);
-    ctx.stroke();
-    lastX = pos.x;
-    lastY = pos.y;
-  }
-
-  function stopDrawing() {
-    drawing = false;
-  }
-
-  // Mouse events
-  canvas.addEventListener("mousedown", startDrawing);
-  canvas.addEventListener("mousemove", draw);
-  canvas.addEventListener("mouseup", stopDrawing);
-  canvas.addEventListener("mouseout", stopDrawing);
-
-  // Touch events
-  canvas.addEventListener("touchstart", startDrawing);
-  canvas.addEventListener("touchmove", function (e) {
-    e.preventDefault(); // Prevent scrolling while drawing
-    draw(e);
-  });
-  canvas.addEventListener("touchend", stopDrawing);
-
-  // Clear signature functionality
-  document.getElementById("clearSignature").addEventListener("click", function () {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-  });
-
-  // ---------------------------
-  // Custom Validation: CNP Checksum
-  // ---------------------------
-  function validateCNP(cnp) {
-    if (!/^\d{13}$/.test(cnp)) return false;
-    const weights = [2, 7, 9, 1, 4, 6, 3, 5, 8, 2, 7, 9];
-    let sum = 0;
-    for (let i = 0; i < 12; i++) {
-      sum += parseInt(cnp[i]) * weights[i];
-    }
-    let remainder = sum % 11;
-    if (remainder === 10) remainder = 1;
-    return remainder === parseInt(cnp[12]);
-  }
-
-  // ---------------------------
-  // PDF Generation using pdf-lib
-  // ---------------------------
-  async function generatePDF(formData, signatureDataUrl) {
-    const { PDFDocument } = PDFLib;
-    // Convert base64 string to Uint8Array
-    const pdfData = atob(pdfTemplateBase64);
-    const pdfBytes = new Uint8Array(
-      pdfData.split("").map((char) => char.charCodeAt(0))
-    );
-    const pdfDoc = await PDFDocument.load(pdfBytes);
-
-    // Example: Assume the PDF has AcroForm fields and fill them accordingly.
-    // (Adjust field names and positions based on your actual PDF template.)
-    const form = pdfDoc.getForm();
-    form.getTextField("nume").setText(formData.nume);
-    form.getTextField("initialaTatalui").setText(formData.initialaTatalui);
-    form.getTextField("prenume").setText(formData.prenume);
-    form.getTextField("cnp").setText(formData.cnp);
-    form.getTextField("email").setText(formData.email);
-    form.getTextField("telefon").setText(formData.telefon);
-    form.getTextField("judet").setText(formData.judet);
-    form.getTextField("localitate").setText(formData.localitate);
-    form.getTextField("numar").setText(formData.numar);
-    form.getTextField("strada").setText(formData.strada);
-    form.getTextField("bloc").setText(formData.bloc);
-    form.getTextField("scara").setText(formData.scara);
-    form.getTextField("etaj").setText(formData.etaj);
-    form.getTextField("apartament").setText(formData.apartament);
-    form.getTextField("codPostal").setText(formData.codPostal);
-    form.getTextField("perioada").setText(formData.perioada);
-
-    // Embed the signature image if provided
-    if (signatureDataUrl) {
-      const pngImageBytes = await fetch(signatureDataUrl).then((res) =>
-        res.arrayBuffer()
-      );
-      const pngImage = await pdfDoc.embedPng(pngImageBytes);
-      const pages = pdfDoc.getPages();
-      const firstPage = pages[0];
-      // Adjust coordinates and dimensions as needed.
-      firstPage.drawImage(pngImage, {
-        x: 50,
-        y: 50,
-        width: 150,
-        height: 50,
-      });
-    }
-
-    const pdfBytesFinal = await pdfDoc.save();
-    return pdfBytesFinal;
-  }
-
-  // Convert Uint8Array to Blob URL for PDF preview
-  function createBlobUrl(pdfBytes) {
-    const blob = new Blob([pdfBytes], { type: "application/pdf" });
-    return URL.createObjectURL(blob);
-  }
-
-  // ---------------------------
-  // Modal for PDF Preview
-  // ---------------------------
-  const modal = document.getElementById("modalPreview");
-  const modalClose = document.querySelector(".modal .close");
-  modalClose.addEventListener("click", function () {
-    modal.style.display = "none";
-  });
-
-  // ---------------------------
-  // Handle Preview Button
-  // ---------------------------
-  document.getElementById("previewForm").addEventListener("click", async function (e) {
-    e.preventDefault();
-    const form = document.getElementById("dataForm");
-    const formData = {
-      nume: form.nume.value,
-      initialaTatalui: form.initialaTatalui.value,
-      prenume: form.prenume.value,
-      cnp: form.cnp.value,
-      email: form.email.value,
-      telefon: form.telefon.value,
-      judet: form.judet.value,
-      localitate: form.localitate.value,
-      numar: form.numar.value,
-      strada: form.strada.value,
-      bloc: form.bloc.value,
-      scara: form.scara.value,
-      etaj: form.etaj.value,
-      apartament: form.apartament.value,
-      codPostal: form.codPostal.value,
-      perioada:
-        (form.an1.checked ? "1 an " : "") +
-        (form.an2.checked ? "2 ani" : ""),
-    };
-
-    // Validate CNP using our custom function
-    if (!validateCNP(formData.cnp)) {
-      alert("CNP invalid!");
-      return;
-    }
-
-    // Get signature as a Data URL from the canvas
-    const signatureDataUrl = canvas.toDataURL("image/png");
-
-    try {
-      const pdfBytes = await generatePDF(formData, signatureDataUrl);
-      const blobUrl = createBlobUrl(pdfBytes);
-      document.getElementById("pdfPreview").src = blobUrl;
-      modal.style.display = "block";
-    } catch (error) {
-      console.error("Error generating PDF:", error);
-      alert("A apărut o eroare la generarea PDF-ului.");
-    }
-  });
-
-  // ---------------------------
-  // Handle Form Submission
-  // ---------------------------
-  document.getElementById("previewForm").addEventListener("submit", async function (e) {
-    e.preventDefault();
-    const form = e.target;
-    const formData = {
-      nume: form.nume.value,
-      initialaTatalui: form.initialaTatalui.value,
-      prenume: form.prenume.value,
-      cnp: form.cnp.value,
-      email: form.email.value,
-      telefon: form.telefon.value,
-      judet: form.judet.value,
-      localitate: form.localitate.value,
-      numar: form.numar.value,
-      strada: form.strada.value,
-      bloc: form.bloc.value,
-      scara: form.scara.value,
-      etaj: form.etaj.value,
-      apartament: form.apartament.value,
-      codPostal: form.codPostal.value,
-      perioada:
-        (form.an1.checked ? "1 an " : "") +
-        (form.an2.checked ? "2 ani" : ""),
-      consimtamantDate: form.consimtamantDate.checked,
-      consimtamantTerms: form.consimtamantTerms.checked,
-      sendByEmail: form.sendByEmail.checked,
-    };
-
-    // Custom CNP validation
-    if (!validateCNP(formData.cnp)) {
-      alert("CNP invalid!");
-      return;
-    }
-
-    // Get signature Data URL
-    const signatureDataUrl = canvas.toDataURL("image/png");
-
-    try {
-      const pdfBytes = await generatePDF(formData, signatureDataUrl);
-      const blobUrl = createBlobUrl(pdfBytes);
-
-      // Prepare payload for the Google Apps Script endpoint
-      const GOOGLE_SCRIPT_URL =
-        "https://script.google.com/macros/s/your-script-id/exec"; // Replace with your actual URL
-      const payload = {
-        fileName: `${formData.judet}_${formData.nume}_${formData.prenume}_formular230H2h.pdf`,
-        pdfBase64: btoa(String.fromCharCode(...pdfBytes)),
-        sendByEmail: formData.sendByEmail,
-        email: formData.email,
-      };
-
-      const response = await fetch(GOOGLE_SCRIPT_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+document.addEventListener('DOMContentLoaded', function() {
+    // Configuration
+    const CONFIG = {
+        SIGNATURE_PAD: {
+            backgroundColor: 'rgb(255, 255, 255)',
+            penColor: 'rgb(0, 0, 255)',
+            minWidth: 0.5,
+            maxWidth: 2.5
         },
-        body: JSON.stringify(payload),
-      });
+        PDF: {
+            signatureScale: 0.5,
+            signaturePosition: { x: 350, y: 100 }
+        },
+        ENDPOINTS: {
+            locations: 'localitati.json',
+            template: 'pdfbase64.txt',
+            submission: 'YOUR_GOOGLE_APPS_SCRIPT_URL'
+        }
+    };
 
-      const result = await response.json();
-      if (result.success) {
-        alert("Formularul a fost trimis cu succes!");
-        form.reset();
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-      } else {
-        alert("A apărut o eroare la trimiterea formularului.");
-      }
-    } catch (error) {
-      console.error("Error during form submission:", error);
-      alert("A apărut o eroare la generarea sau trimiterea PDF-ului.");
+    // Form Validators
+    const validators = {
+        nume: {
+            pattern: /^[A-Za-zĂăÂâÎîȘșȚț\s-]{1,50}$/,
+            message: 'Numele poate conține doar litere, spații și cratimă (max. 50 caractere)'
+        },
+        prenume: {
+            pattern: /^[A-Za-zĂăÂâÎîȘșȚț\s-]{1,50}$/,
+            message: 'Prenumele poate conține doar litere, spații și cratimă (max. 50 caractere)'
+        },
+        initialaTatalui: {
+            pattern: /^[A-Za-zĂăÂâÎîȘșȚț]$/,
+            message: 'Inițiala tatălui trebuie să fie o singură literă'
+        },
+        cnp: {
+            validate: (value) => {
+                if (!/^\d{13}$/.test(value)) return false;
+                const cnp = value.split('').map(Number);
+                const controlNumber = '279146358279';
+                let sum = 0;
+                for (let i = 0; i < 12; i++) {
+                    sum += cnp[i] * controlNumber[i];
+                }
+                const control = sum % 11;
+                return (control < 10 ? control : 1) === cnp[12];
+            },
+            message: 'CNP invalid'
+        },
+        telefon: {
+            pattern: /^(07[0-8]{1}[0-9]{1}|02[0-9]{2}|03[0-9]{2}){1}?([0-9]{6})$/,
+            message: 'Număr de telefon invalid'
+        },
+        email: {
+            pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+            message: 'Adresă de email invalidă'
+        }
+    };
+
+    let signaturePad;
+
+    // Initialize SignaturePad
+    function initializeSignaturePad() {
+        const canvas = document.getElementById('signaturePad');
+        if (!canvas) {
+            console.error('Signature pad canvas not found');
+            return;
+        }
+
+        signaturePad = new SignaturePad(canvas, CONFIG.SIGNATURE_PAD);
+        handleCanvasResize();
+        return signaturePad;
     }
-  });
 
-  // Clear signature on form reset
-  document.getElementById("dataForm").addEventListener("reset", function () {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-  });
+    function handleCanvasResize() {
+        const canvas = document.getElementById('signaturePad');
+        const ratio = Math.max(window.devicePixelRatio || 1, 1);
+        canvas.width = canvas.offsetWidth * ratio;
+        canvas.height = canvas.offsetHeight * ratio;
+        canvas.getContext("2d").scale(ratio, ratio);
+        if (signaturePad) {
+            signaturePad.clear();
+        }
+    }
+
+    // Location Handling
+    async function initializeLocationDropdowns() {
+        const judetSelect = document.getElementById('judet');
+        const localitateSelect = document.getElementById('localitate');
+        
+        try {
+            const response = await fetch(CONFIG.ENDPOINTS.locations);
+            if (!response.ok) throw new Error('Failed to fetch location data');
+            
+            const locationData = await response.json();
+            const judete = [...new Set(locationData.map(item => item.judet))].sort();
+            
+            judetSelect.innerHTML = '<option value="">Selectează județul</option>';
+            judete.forEach(judet => {
+                const option = new Option(judet, judet);
+                judetSelect.add(option);
+            });
+
+            judetSelect.addEventListener('change', function() {
+                const selectedJudet = this.value;
+                localitateSelect.innerHTML = '<option value="">Selectează localitatea</option>';
+                
+                if (selectedJudet) {
+                    const localitati = locationData
+                        .filter(item => item.judet === selectedJudet)
+                        .map(item => item.nume)
+                        .sort();
+                    
+                    localitati.forEach(localitate => {
+                        const option = new Option(localitate, localitate);
+                        localitateSelect.add(option);
+                    });
+                }
+            });
+        } catch (error) {
+            console.error('Error initializing location dropdowns:', error);
+            judetSelect.innerHTML = '<option value="">Eroare la încărcarea județelor</option>';
+            localitateSelect.innerHTML = '<option value="">Eroare la încărcarea localităților</option>';
+        }
+    }
+
+    // PDF Generation
+    async function generatePDF(formData, signatureData) {
+        try {
+            const templateResponse = await fetch(CONFIG.ENDPOINTS.template);
+            if (!templateResponse.ok) {
+                throw new Error('Failed to load PDF template');
+            }
+            
+            const base64Template = await templateResponse.text();
+            const templateBytes = convertBase64ToBytes(base64Template);
+            const pdfDoc = await PDFLib.PDFDocument.load(templateBytes);
+            const form = pdfDoc.getForm();
+
+            await fillPDFForm(form, formData);
+
+            if (signatureData) {
+                await addSignatureToPDF(pdfDoc, signatureData);
+            }
+
+            return await pdfDoc.save();
+        } catch (error) {
+            console.error('PDF generation error:', error);
+            throw new Error('Nu s-a putut genera PDF-ul');
+        }
+    }
+
+    async function fillPDFForm(form, data) {
+        const textFields = [
+            'nume', 'initialaTatalui', 'prenume', 'cnp', 'strada', 'numar',
+            'bloc', 'scara', 'etaj', 'apartament', 'judet', 'localitate',
+            'codPostal', 'email', 'telefon'
+        ];
+
+        textFields.forEach(fieldName => {
+            if (data[fieldName]) {
+                try {
+                    const field = form.getTextField(fieldName);
+                    if (field) field.setText(String(data[fieldName]));
+                } catch (error) {
+                    console.warn(`Could not fill field ${fieldName}:`, error);
+                }
+            }
+        });
+
+        try {
+            if (data.perioadaRedirectionare) {
+                const periodField = form.getCheckBox(`perioada${data.perioadaRedirectionare}`);
+                if (periodField) periodField.check();
+            }
+            if (data.acordDate) {
+                const acordField = form.getCheckBox('acordDate');
+                if (acordField) acordField.check();
+            }
+        } catch (error) {
+            console.warn('Error handling checkboxes:', error);
+        }
+    }
+
+    async function addSignatureToPDF(pdfDoc, signatureData) {
+        try {
+            const signatureBytes = await fetch(signatureData).then(res => res.arrayBuffer());
+            const signatureImage = await pdfDoc.embedPng(signatureBytes);
+            const page = pdfDoc.getPages()[0];
+            
+            const { width, height } = signatureImage.scale(CONFIG.PDF.signatureScale);
+            page.drawImage(signatureImage, {
+                x: CONFIG.PDF.signaturePosition.x,
+                y: CONFIG.PDF.signaturePosition.y,
+                width,
+                height
+            });
+        } catch (error) {
+            throw new Error('Nu s-a putut adăuga semnătura');
+        }
+    }
+
+    // Utility Functions
+    function convertBase64ToBytes(base64String) {
+        try {
+            const cleanBase64 = base64String.replace(/^data:application\/pdf;base64,/, '');
+            const binaryString = atob(cleanBase64);
+            const bytes = new Uint8Array(binaryString.length);
+            
+            for (let i = 0; i < binaryString.length; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            
+            return bytes;
+        } catch (error) {
+            console.error('Error converting base64 to bytes:', error);
+            throw new Error('Eroare la procesarea șablonului PDF');
+        }
+    }
+
+    function blobToBase64(blob) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result.split(',')[1]);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+        });
+    }
+
+    // Event Handlers
+    async function handleFormSubmit(event) {
+        event.preventDefault();
+        
+        if (!event.target.checkValidity()) {
+            event.target.reportValidity();
+            return;
+        }
+
+        try {
+            const formData = new FormData(event.target);
+            const signatureData = signaturePad?.isEmpty() ? null : signaturePad.toDataURL();
+            
+            const pdfBytes = await generatePDF(Object.fromEntries(formData), signatureData);
+            const pdfBase64 = await blobToBase64(new Blob([pdfBytes]));
+            
+            const response = await fetch(CONFIG.ENDPOINTS.submission, {
+                method: 'POST',
+                body: JSON.stringify({
+                    formData: Object.fromEntries(formData),
+                    pdf: pdfBase64,
+                    filename: `${formData.get('judet')}_${formData.get('nume')}_${formData.get('prenume')}_formular230`
+                })
+            });
+
+            if (response.ok) {
+                alert('Formularul a fost trimis cu succes!');
+                if (formData.get('trimiteEmail')) {
+                    alert('Veți primi formularul pe adresa de email specificată.');
+                }
+            } else {
+                throw new Error('Eroare la trimiterea formularului');
+            }
+        } catch (error) {
+            alert(error.message || 'Eroare la trimiterea formularului. Vă rugăm să încercați din nou.');
+        }
+    }
+
+    async function handlePreview() {
+        const form = document.getElementById('form230');
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+
+        try {
+            const formData = new FormData(form);
+            const signatureData = signaturePad?.isEmpty() ? null : signaturePad.toDataURL();
+            
+            const pdfBytes = await generatePDF(Object.fromEntries(formData), signatureData);
+            const pdfBlob = new Blob([pdfBytes], { type: 'application/pdf' });
+            const pdfUrl = URL.createObjectURL(pdfBlob);
+            
+            const modal = document.getElementById('previewModal');
+            const pdfPreview = document.getElementById('pdfPreview');
+            pdfPreview.innerHTML = `<iframe src="${pdfUrl}" width="100%" height="100%" frameborder="0"></iframe>`;
+            modal.classList.remove('hidden');
+        } catch (error) {
+            alert(error.message || 'Eroare la generarea previzualizării.');
+        }
+    }
+
+    // Form Field Validation
+    function setupFormValidation() {
+        const form = document.getElementById('form230');
+        form.addEventListener('input', function(e) {
+            const field = e.target;
+            const validator = validators[field.name];
+            
+            if (validator) {
+                const isValid = validator.validate ? 
+                    validator.validate(field.value) : 
+                    (field.value === '' && !field.required) || validator.pattern.test(field.value);
+                
+                field.classList.toggle('invalid', !isValid);
+                const errorElement = field.parentElement.querySelector('.error-message');
+                if (errorElement) {
+                    errorElement.textContent = isValid ? '' : validator.message;
+                }
+            }
+        });
+    }
+
+    // Initialize
+    function initialize() {
+        initializeSignaturePad();
+        initializeLocationDropdowns();
+        setupFormValidation();
+        
+        // Event Listeners
+        window.addEventListener('resize', handleCanvasResize);
+        document.getElementById('clearSignature')?.addEventListener('click', () => signaturePad?.clear());
+        document.getElementById('form230')?.addEventListener('submit', handleFormSubmit);
+        document.getElementById('previewForm')?.addEventListener('click', handlePreview);
+        document.getElementById('resetForm')?.addEventListener('click', () => {
+            if (confirm('Sunteți sigur că doriți să ștergeți toate datele din formular?')) {
+                document.getElementById('form230').reset();
+                signaturePad?.clear();
+            }
+        });
+        document.getElementById('closePreview')?.addEventListener('click', () => {
+            document.getElementById('previewModal').classList.add('hidden');
+        });
+    }
+
+    // Start initialization
+    initialize();
 });
