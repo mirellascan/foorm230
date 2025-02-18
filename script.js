@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', function() {
         ENDPOINTS: {
             locations: 'localitati.json',
             template: 'pdfbase64.txt',
-            submission: 'https://script.google.com/macros/s/AKfycbz6Q34ZqcLgGmq-eWFkGgcwXhPruscRR5FNWFBDA0EgJ0cSkf49Rzbe36a48U1BlYQ1Dg/exec'
+            submission: 'https://script.google.com/macros/s/AKfycbxqBG_MpPtspkI4dWLczrgOqX8Ynf78wq-P5VsC9HI7cbp8mY4hFA7RybdtJ_CwPFHa/exec'
         }
     };
     // Form Validators
@@ -232,69 +232,71 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Event Handlers
     async function handleFormSubmit(event) {
-        event.preventDefault();
-        
-        if (!event.target.checkValidity()) {
-            event.target.reportValidity();
-            return;
-        }
-
-        if (signaturePad.isEmpty()) {
-            alert('Vă rugăm să adăugați semnătura');
-            return;
-        }
-
-        try {
-            const submitButton = event.target.querySelector('button[type="submit"]');
-            submitButton.disabled = true;
-            submitButton.textContent = 'Se procesează...';
-
-            const formData = new FormData(event.target);
-            const signatureData = signaturePad.toDataURL();
-            
-            const pdfBytes = await generatePDF(Object.fromEntries(formData), signatureData);
-            const pdfBase64 = await blobToBase64(new Blob([pdfBytes]));
-            
-            const submitData = {
-                formData: Object.fromEntries(formData),
-                pdf: pdfBase64,
-                filename: `${formData.get('judet')}_${formData.get('nume')}_${formData.get('prenume')}_formular230.pdf`
-            };
-
-            const response = await fetch(CONFIG.ENDPOINTS.submission, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                mode: 'cors',
-                body: JSON.stringify(submitData)
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const result = await response.json();
-            
-            if (result.success) {
-                alert('Formularul a fost trimis cu succes!');
-                if (formData.get('trimiteEmail')) {
-                    alert('Veți primi formularul pe adresa de email specificată.');
-                }
-                event.target.reset();
-                signaturePad.clear();
-            } else {
-                throw new Error(result.error || 'Eroare la procesarea formularului');
-            }
-        } catch (error) {
-            console.error('Submission error:', error);
-            alert('Eroare la trimiterea formularului. Vă rugăm să încercați din nou.');
-        } finally {
-            const submitButton = event.target.querySelector('button[type="submit"]');
-            submitButton.disabled = false;
-            submitButton.textContent = 'Completează și trimite formularul';
-        }
+    event.preventDefault();
+    
+    if (!event.target.checkValidity()) {
+        event.target.reportValidity();
+        return;
     }
+
+    if (signaturePad.isEmpty()) {
+        alert('Vă rugăm să adăugați semnătura');
+        return;
+    }
+
+    const submitButton = event.target.querySelector('button[type="submit"]');
+    submitButton.disabled = true;
+    submitButton.textContent = 'Se procesează...';
+
+    try {
+        const formData = new FormData(event.target);
+        const signatureData = signaturePad.toDataURL();
+        
+        const pdfBytes = await generatePDF(Object.fromEntries(formData), signatureData);
+        const pdfBase64 = await blobToBase64(new Blob([pdfBytes]));
+        
+        const submitData = {
+            formData: Object.fromEntries(formData),
+            pdf: pdfBase64,
+            filename: `${formData.get('judet')}_${formData.get('nume')}_${formData.get('prenume')}_formular230.pdf`
+        };
+
+        // Create a form-urlencoded string
+        const params = new URLSearchParams();
+        params.append('data', JSON.stringify(submitData));
+
+        const response = await fetch(CONFIG.ENDPOINTS.submission, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: params.toString()
+        });
+
+        if (!response.ok) {
+            throw new Error(`Error: ${response.status}`);
+        }
+
+        const result = await response.json();
+        
+        if (result.success) {
+            alert('Formularul a fost trimis cu succes!');
+            if (formData.get('trimiteEmail')) {
+                alert('Veți primi formularul pe adresa de email specificată.');
+            }
+            event.target.reset();
+            signaturePad.clear();
+        } else {
+            throw new Error(result.error || 'Eroare la procesarea formularului');
+        }
+    } catch (error) {
+        console.error('Submission error:', error);
+        alert('Eroare la trimiterea formularului. Vă rugăm să încercați din nou.');
+    } finally {
+        submitButton.disabled = false;
+        submitButton.textContent = 'Completează și trimite formularul';
+    }
+}
 
     async function handlePreview() {
         const form = document.getElementById('form230');
