@@ -265,7 +265,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   // ---------------------------
   // Handle Form Submission
   // ---------------------------
-  document.getElementById("dataForm").addEventListener("previewForm", async function (e) {
+  document.getElementById("previewForm").addEventListener("submit", async function (e) {
     e.preventDefault();
     const form = e.target;
     const formData = {
