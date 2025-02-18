@@ -1,82 +1,301 @@
 <!DOCTYPE html>
 <html lang="ro">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Completează formularul 230 online pentru redirecționarea a 3.5% din impozitul pe venit. Generare PDF automată.">
-    <meta name="keywords" content="formular 230, redirecționare 3.5%, ANAF, PDF">
-    <meta name="author" content="Ajuta Viata">
-	<link rel="stylesheet" href="Styles.css">
-    <title>Help to Heart</title>
-    <link rel="icon" href="favicon.ico" type="image/x-icon">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.6.0/dom-to-image.min.js"></script>
-    
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Formular Ajutaviata</title>
+  <!-- Include pdf-lib (or jsPDF) for PDF manipulation -->
+  <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    
-    <img src="https://ajutaviata.ro/wp-content/uploads/2025/01/cropped-logo-hth-768x220.png" alt="Ajuta Viata" class="banner">
-    <form id="form230">
-        <h1>Completează Formularul 230</h1>
 
-        <div class="section-title">Date de identificare</div>
+  <div class="container">
+    <!-- Main Title (optional) -->
+    <h1 class="title">Completează Formularul 230</h1>
+
+    <!-- SECTION 1: Date de identificare -->
+    <h2 class="section-title">Date de identificare</h2>
+    <fieldset>
+      <div class="form-row">
+        <!-- Nume -->
         <div class="form-group">
-            <div class="input-group"><input type="text" id="nume" placeholder=" " required><label for="nume">Nume</label></div>
-            <div class="input-group"><input type="text" id="initialaTatalui" placeholder=" "><label for="initialaTatalui">Inițiala tatălui</label></div>
-            <div class="input-group"><input type="text" id="prenume" placeholder=" " required><label for="prenume">Prenume</label></div>
-            <div class="input-group"><input type="text" id="cnp" placeholder=" " required><label for="cnp">Cod Numeric Personal (CNP)</label></div>
-            <div class="input-group"><input type="email" id="email" placeholder=" " required><label for="email">Adresa e-mail</label></div>
-            <div class="input-group"><input type="text" id="telefon" placeholder=" "><label for="telefon">Telefon</label></div>
+          <label for="nume">Nume*</label>
+          <input
+            type="text"
+            id="nume"
+            name="nume"
+            maxlength="50"
+            pattern="[A-Za-zĂÂÎȘȚăâîșț\s]+"
+            required
+          />
         </div>
+        <!-- Inițiala tatălui -->
+        <div class="form-group">
+          <label for="initialaTatalui">Inițiala tatălui</label>
+          <input
+            type="text"
+            id="initialaTatalui"
+            name="initialaTatalui"
+            maxlength="1"
+            pattern="[A-Za-zĂÂÎȘȚăâîșț]"
+          />
+        </div>
+        <!-- Prenume -->
+        <div class="form-group">
+          <label for="prenume">Prenume*</label>
+          <input
+            type="text"
+            id="prenume"
+            name="prenume"
+            maxlength="50"
+            pattern="[A-Za-zĂÂÎȘȚăâîșț\s]+"
+            required
+          />
+        </div>
+      </div>
 
-        <div class="section-title">Adresa de domiciliu (așa cum apare în Cartea de Identitate)</div>
-		<div class="form-group">
-            <div class="input-group">
-				
-				<select id="judet" required>
-					<option value="">Selectează județul</option>
-				</select>
-			</div>
+      <div class="form-row">
+        <!-- CNP -->
+        <div class="form-group">
+          <label for="cnp">CNP*</label>
+          <input
+            type="text"
+            id="cnp"
+            name="cnp"
+            maxlength="13"
+            pattern="\d{13}"
+            required
+          />
+        </div>
+        <!-- Email -->
+        <div class="form-group">
+          <label for="email">Adresă e-mail</label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+          />
+        </div>
+        <!-- Telefon -->
+        <div class="form-group">
+          <label for="telefon">Telefon Mobil</label>
+          <input
+            type="text"
+            id="telefon"
+            name="telefon"
+            pattern="^07[0-9]{8}$"
+          />
+        </div>
+      </div>
+    </fieldset>
 
-			<div class="input-group">
-				
-				<select id="localitate" required>
-					<option value="">Selectează localitatea</option>
-				</select>
-			</div>
-            <div class="input-group"><input type="text" id="strada" placeholder=" " required><label for="strada">Strada</label></div>
-            <div class="input-group"><input type="text" id="numar" placeholder=" "><label for="numar">Număr</label></div>
-            <div class="input-group"><input type="text" id="bloc" placeholder=" "><label for="bloc">Bloc</label></div>
-            <div class="input-group"><input type="text" id="scara" placeholder=" "><label for="scara">Scara</label></div>
-            <div class="input-group"><input type="text" id="etaj" placeholder=" "><label for="etaj">Etaj</label></div>
-            <div class="input-group"><input type="text" id="apartament" placeholder=" "><label for="apartament">Apartament</label></div>
-            <div class="input-group"><input type="text" id="codPostal" placeholder=" "><label for="codPostal">Cod poștal</label></div>
+    <!-- SECTION 2: Adresa de domiciliu -->
+    <h2 class="section-title">Adresa de domiciliu (așa cum apare în Cartea de Identitate)</h2>
+    <fieldset>
+      <div class="form-row">
+        <!-- Județ -->
+        <div class="form-group">
+          <label for="judet">Județ*</label>
+          <select id="judet" name="judet" required>
+            <option value="">Selectează județul</option>
+            <!-- Populated via script.js -->
+          </select>
         </div>
-        
-          <div class="section-title">Semnătura</div>
-        <div class="canvas-container">
-            <canvas id="signature" width="750" height="200" style="border:1px solid #ED0505"></canvas>
-            <button type="button" onclick="clearSignature()">Șterge Semnătura</button>
+        <!-- Localitate -->
+        <div class="form-group">
+          <label for="localitate">Localitate*</label>
+          <select id="localitate" name="localitate" required>
+            <option value="">Selectează localitatea</option>
+            <!-- Populated dynamically via script.js -->
+          </select>
         </div>
-		<button type="button" onclick="previewPDF()">Previzualizează PDF</button>
-        <button type="submit">Completează formular</button>
-		<!-- Success Message -->
-		<p id="successMessage" style="display: none; color: green; font-weight: bold; text-align: center; margin-top: 15px;">
-			Formularul a fost completat cu succes. Mulțumim!
-		</p>
-		</form>
-		<!-- PDF Preview Modal -->
-	<div id="pdfPreviewModal" class="modal">
-    	<div class="modal-content">
-        <span class="close-btn" onclick="closePDFModal()">&times;</span>
-        <iframe id="pdfViewer" class="pdf-frame"></iframe>
+        <!-- Număr -->
+        <div class="form-group">
+          <label for="numar">Număr*</label>
+          <input
+            type="text"
+            id="numar"
+            name="numar"
+            maxlength="10"
+            pattern="[A-Za-z0-9]+"
+            required
+          />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <!-- Stradă -->
+        <div class="form-group">
+          <label for="strada">Stradă*</label>
+          <input
+            type="text"
+            id="strada"
+            name="strada"
+            maxlength="50"
+            pattern="[A-Za-z0-9\s]+"
+            required
+          />
+        </div>
+        <!-- Bloc -->
+        <div class="form-group">
+          <label for="bloc">Bloc</label>
+          <input
+            type="text"
+            id="bloc"
+            name="bloc"
+            maxlength="10"
+            pattern="[A-Za-z0-9]+"
+          />
+        </div>
+        <!-- Scară -->
+        <div class="form-group">
+          <label for="scara">Scară</label>
+          <input
+            type="text"
+            id="scara"
+            name="scara"
+            maxlength="10"
+            pattern="[A-Za-z0-9]+"
+          />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <!-- Etaj -->
+        <div class="form-group">
+          <label for="etaj">Etaj</label>
+          <input
+            type="text"
+            id="etaj"
+            name="etaj"
+            maxlength="10"
+            pattern="[A-Za-z0-9]+"
+          />
+        </div>
+        <!-- Apartament -->
+        <div class="form-group">
+          <label for="apartament">Apartament</label>
+          <input
+            type="text"
+            id="apartament"
+            name="apartament"
+            maxlength="10"
+            pattern="[A-Za-z0-9]+"
+          />
+        </div>
+        <!-- Cod Poștal -->
+        <div class="form-group">
+          <label for="codPostal">Cod Poștal</label>
+          <input
+            type="text"
+            id="codPostal"
+            name="codPostal"
+            maxlength="10"
+            pattern="\d+"
+          />
+        </div>
+      </div>
+    </fieldset>
+
+    <!-- SECTION 3: Semnează și trimite formularul -->
+    <h2 class="section-title">Semnează și trimite formularul</h2>
+    <fieldset>
+      <!-- Perioada redirecționării -->
+      <div class="form-row">
+        <div class="form-group checkbox-group">
+          <input
+            type="checkbox"
+            id="an1"
+            name="perioada"
+            value="1 an"
+            required
+          />
+          <label for="an1">1 an</label>
+        </div>
+        <div class="form-group checkbox-group">
+          <input
+            type="checkbox"
+            id="an2"
+            name="perioada"
+            value="2 ani"
+            required
+          />
+          <label for="an2">2 ani</label>
+        </div>
+      </div>
+
+      <!-- Consimțământ date -->
+      <div class="form-row">
+        <div class="form-group checkbox-group">
+          <input
+            type="checkbox"
+            id="consimtamantDate"
+            name="consimtamantDate"
+          />
+          <label for="consimtamantDate">
+            Sunt de acord ca datele de identificare (nume, prenume și cod numeric personal/număr de identificare fiscală), precum și suma direcționată să fie comunicate entității beneficiare.
+          </label>
+        </div>
+      </div>
+
+      <!-- Semnătură -->
+      <div class="form-row">
+        <div class="form-group signature-container">
+          <canvas id="signatureCanvas"></canvas>
+          <button type="button" id="clearSignature">Șterge semnătura</button>
+        </div>
+      </div>
+
+      <!-- Consimțământ termeni -->
+      <div class="form-row">
+        <div class="form-group checkbox-group">
+          <input
+            type="checkbox"
+            id="consimtamantTerms"
+            name="consimtamantTerms"
+            required
+          />
+          <label for="consimtamantTerms">
+            Sunt de acord cu
+            <a href="https://ajutaviata.ro/" target="_blank">
+              Termenii și Politica de Confidențialitate a Asociației
+            </a>
+          </label>
+        </div>
+      </div>
+
+      <!-- Vreau să primesc formularul completat pe e-mail -->
+      <div class="form-row">
+        <div class="form-group checkbox-group">
+          <input
+            type="checkbox"
+            id="sendByEmail"
+            name="sendByEmail"
+          />
+          <label for="sendByEmail">
+            Vreau să primesc formularul completat pe e-mail
+          </label>
+        </div>
+      </div>
+
+      <!-- Form Buttons -->
+      <div class="form-buttons">
+        <button type="button" id="previewForm">Previzualizează formularul</button>
+        <button type="reset" id="resetForm">Resetează formularul</button>
+        <button type="submit" id="submitForm">Completează și trimite formularul</button>
+      </div>
+    </fieldset>
+  </div>
+
+  <!-- Modal for PDF Preview -->
+  <div id="modalPreview" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <iframe id="pdfPreview" style="width:100%; height:500px;"></iframe>
     </div>
-</div>
+  </div>
 
-		<footer class="footer">
-			Copyright © 2025 ajutaviata | Powered by ajutaviata
-		</footer>
-
-	<script src="script.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
