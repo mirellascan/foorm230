@@ -1,8 +1,7 @@
-/* Base styles and variables */
+/* Base variables */
 :root {
     --primary-color: #2873B9;
     --primary-hover: #1e5c94;
-    --secondary-color: #37A0EA;
     --success-color: #34A853;
     --success-hover: #2d8a46;
     --text-color: #333333;
@@ -17,31 +16,43 @@ body {
     font-family: 'Open Sans', system-ui, -apple-system, sans-serif;
     color: var(--text-color);
     line-height: 1.5;
+    background-color: var(--background-light);
 }
 
 h2 {
     color: var(--primary-color);
+    font-size: 1.25rem;
     margin-bottom: 1.5rem;
     font-weight: 600;
 }
 
-/* Form container */
+/* Form Container */
 .container {
-    max-width: 1200px;
     margin: 2rem auto;
     padding: 0 1rem;
 }
 
-/* Form elements */
+/* Form Elements */
 .form-group {
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
+    position: relative;
 }
 
 label {
-    display: block;
-    margin-bottom: 0.5rem;
     color: var(--text-color);
-    font-weight: 500;
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+label:after {
+    content: " *";
+    color: var(--error-color);
+    display: none;
+}
+
+label[for]:has(+ [required]):after {
+    display: inline;
 }
 
 input[type="text"],
@@ -52,17 +63,16 @@ select {
     padding: 0.75rem;
     border: 1px solid var(--border-color);
     border-radius: 0.375rem;
-    background-color: white;
+    font-size: 0.875rem;
     transition: border-color 0.2s, box-shadow 0.2s;
+    background-color: white;
 }
 
-input[type="text"]:focus,
-input[type="email"]:focus,
-input[type="tel"]:focus,
+input:focus,
 select:focus {
+    outline: none;
     border-color: var(--primary-color);
     box-shadow: 0 0 0 3px rgba(40, 115, 185, 0.1);
-    outline: none;
 }
 
 input.invalid {
@@ -71,17 +81,25 @@ input.invalid {
 
 .error-message {
     color: var(--error-color);
-    font-size: 0.875rem;
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+    display: block;
+    min-height: 1rem;
+}
+
+/* Checkbox and Radio Styles */
+input[type="checkbox"],
+input[type="radio"] {
+    width: 1rem;
+    height: 1rem;
+    border: 1.5px solid var(--border-color);
+    border-radius: 0.25rem;
+    cursor: pointer;
     margin-top: 0.25rem;
 }
 
-/* Checkbox and Radio styles */
-input[type="checkbox"],
 input[type="radio"] {
-    cursor: pointer;
-    width: 1rem;
-    height: 1rem;
-    border-color: var(--border-color);
+    border-radius: 50%;
 }
 
 input[type="checkbox"]:checked,
@@ -91,97 +109,149 @@ input[type="radio"]:checked {
 }
 
 /* Signature Pad */
-#signaturePad {
+.signature-container {
     background-color: white;
-    border: 2px solid var(--border-color);
+    padding: 1rem;
+    border-radius: 0.5rem;
+}
+
+.signature-pad {
+    width: 100%;
+    height: 120px;
+    background-color: white;
+    border: 1px solid var(--border-color);
     border-radius: 0.375rem;
-    margin-bottom: 1rem;
     touch-action: none;
+}
+
+@media (min-width: 768px) {
+    .signature-pad {
+        height: 150px;
+    }
+}
+
+.clear-button {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    color: var(--text-color);
+    background-color: var(--background-light);
+    border-radius: 0.375rem;
+    transition: background-color 0.2s;
+}
+
+.clear-button:hover {
+    background-color: var(--border-color);
 }
 
 /* Buttons */
 button {
     padding: 0.75rem 1.5rem;
-    border-radius: 0.375rem;
     font-weight: 500;
+    border-radius: 0.375rem;
     transition: all 0.2s;
     cursor: pointer;
-    border: none;
+    font-size: 0.875rem;
 }
 
-#previewForm {
+.button-preview {
     background-color: var(--primary-color);
     color: white;
 }
 
-#previewForm:hover {
+.button-preview:hover {
     background-color: var(--primary-hover);
 }
 
-#resetForm {
+.button-reset {
     background-color: var(--background-light);
     color: var(--text-color);
 }
 
-#resetForm:hover {
+.button-reset:hover {
     background-color: var(--border-color);
 }
 
-button[type="submit"] {
+.button-submit {
     background-color: var(--success-color);
     color: white;
 }
 
-button[type="submit"]:hover {
+.button-submit:hover {
     background-color: var(--success-hover);
 }
 
-#clearSignature {
-    background-color: var(--background-light);
-    color: var(--text-color);
-    padding: 0.5rem 1rem;
-    font-size: 0.875rem;
+button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
 }
 
-#clearSignature:hover {
-    background-color: var(--border-color);
+/* Modal Styles */
+.modal {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    z-index: 50;
 }
 
-/* Modal styles */
-.modal-preview {
+.modal-content {
+    background-color: white;
+    border-radius: 0.5rem;
     width: 90vw;
     max-width: 1200px;
     height: 90vh;
-    background-color: white;
-    border-radius: 0.5rem;
-    overflow: hidden;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
 }
 
-.pdf-preview-container {
-    flex-grow: 1;
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.modal-body {
+    flex: 1;
     overflow: hidden;
     background-color: var(--background-light);
 }
 
-.pdf-preview-container iframe {
+.modal-body iframe {
     width: 100%;
     height: 100%;
     border: none;
 }
 
-/* Required field indicator */
-label[for]:after {
-    content: attr(for);
+.close-button {
+    color: var(--text-light);
+    padding: 0.5rem;
+    border-radius: 0.375rem;
+    transition: color 0.2s;
 }
 
-label[for*="*"]:after {
-    content: " *";
-    color: var(--error-color);
+.close-button:hover {
+    color: var(--text-color);
 }
 
-/* Responsive adjustments */
+/* Links */
+a {
+    color: var(--primary-color);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+a:hover {
+    color: var(--primary-hover);
+    text-decoration: underline;
+}
+
+/* Responsive Adjustments */
 @media (max-width: 768px) {
     .container {
         padding: 0 0.5rem;
@@ -192,28 +262,13 @@ label[for*="*"]:after {
         margin-bottom: 0.5rem;
     }
 
-    .modal-preview {
+    .modal-content {
         width: 95vw;
         height: 95vh;
     }
 }
 
-/* Focus indicators for accessibility */
-button:focus,
-input:focus,
-select:focus {
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(40, 115, 185, 0.1);
-}
-
-/* Custom link styles */
-a {
-    color: var(--primary-color);
-    text-decoration: none;
-    transition: color 0.2s;
-}
-
-a:hover {
-    color: var(--primary-hover);
-    text-decoration: underline;
+/* Utilities */
+.hidden {
+    display: none;
 }
