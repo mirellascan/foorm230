@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', function() {
         ENDPOINTS: {
             locations: 'localitati.json',
             template: 'pdfbase64.txt',
-            submission: 'https://script.google.com/macros/s/AKfycbxqBG_MpPtspkI4dWLczrgOqX8Ynf78wq-P5VsC9HI7cbp8mY4hFA7RybdtJ_CwPFHa/exec'
+            submission: 'https://script.google.com/macros/s/AKfycbxamjkFpSn_Faqn6WBSMnMyiwU58FZyzK89YAokV1Pu9qYlyG9Odg-voS2E9wFiBaUcJA/exec'
         }
     };
     // Form Validators
@@ -255,40 +255,43 @@ document.addEventListener('DOMContentLoaded', function() {
         const pdfBytes = await generatePDF(Object.fromEntries(formData), signatureData);
         const pdfBase64 = await blobToBase64(new Blob([pdfBytes]));
         
-        const submitData = {
+        // Create a hidden form for submission
+        const hiddenForm = document.createElement('form');
+        hiddenForm.method = 'POST';
+        hiddenForm.action = CONFIG.ENDPOINTS.submission;
+        hiddenForm.target = '_blank'; // This prevents page reload
+
+        // Add the data as hidden fields
+        const dataInput = document.createElement('input');
+        dataInput.type = 'hidden';
+        dataInput.name = 'payload';
+        dataInput.value = JSON.stringify({
             formData: Object.fromEntries(formData),
             pdf: pdfBase64,
             filename: `${formData.get('judet')}_${formData.get('nume')}_${formData.get('prenume')}_formular230.pdf`
-        };
-
-        // Create a form-urlencoded string
-        const params = new URLSearchParams();
-        params.append('data', JSON.stringify(submitData));
-
-        const response = await fetch(CONFIG.ENDPOINTS.submission, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            },
-            body: params.toString()
         });
 
-        if (!response.ok) {
-            throw new Error(`Error: ${response.status}`);
-        }
+        hiddenForm.appendChild(dataInput);
+        document.body.appendChild(hiddenForm);
 
-        const result = await response.json();
-        
-        if (result.success) {
-            alert('Formularul a fost trimis cu succes!');
-            if (formData.get('trimiteEmail')) {
-                alert('Veți primi formularul pe adresa de email specificată.');
-            }
-            event.target.reset();
-            signaturePad.clear();
-        } else {
-            throw new Error(result.error || 'Eroare la procesarea formularului');
+        // Submit the form
+        hiddenForm.submit();
+
+        // Clean up the hidden form
+        setTimeout(() => {
+            document.body.removeChild(hiddenForm);
+        }, 500);
+
+        // Show success message
+        alert('Formularul a fost trimis cu succes!');
+        if (formData.get('trimiteEmail')) {
+            alert('Veți primi formularul pe adresa de email specificată.');
         }
+        
+        // Reset the original form
+        event.target.reset();
+        signaturePad.clear();
+
     } catch (error) {
         console.error('Submission error:', error);
         alert('Eroare la trimiterea formularului. Vă rugăm să încercați din nou.');
