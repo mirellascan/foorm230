@@ -8,9 +8,6 @@
     <link href="Styles.css" rel="stylesheet">
 </head>
 <body class="bg-gray-50">
-    <div id="loader" style="display: none;">
-    <div class="spinner"></div>
-      </div>
     <div class="container mx-auto px-4 py-8 max-w-3xl">
         <form id="form230" class="space-y-6 bg-white shadow-md rounded-lg p-6">
             <!-- Personal Information Section -->
@@ -19,7 +16,7 @@
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="form-group">
-                        <label for="nume" class="block text-sm font-medium">Nume</label>
+                        <label for="nume" class="block text-sm font-medium">Nume *</label>
                         <input type="text" id="nume" name="nume" maxlength="50" required>
                         <span class="error-message"></span>
                     </div>
@@ -31,13 +28,13 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="prenume" class="block text-sm font-medium">Prenume</label>
+                        <label for="prenume" class="block text-sm font-medium">Prenume *</label>
                         <input type="text" id="prenume" name="prenume" maxlength="50" required>
                         <span class="error-message"></span>
                     </div>
 
                     <div class="form-group">
-                        <label for="cnp" class="block text-sm font-medium">CNP</label>
+                        <label for="cnp" class="block text-sm font-medium">CNP *</label>
                         <input type="text" id="cnp" name="cnp" maxlength="13" required>
                         <span class="error-message"></span>
                     </div>
@@ -48,30 +45,15 @@
             <div class="space-y-4">
                 <h2 class="text-xl font-semibold">Adresă</h2>
                 
-                <div class="form-group">
-                        <label for="judet" class="block text-sm font-medium">Județ</label>
-                        <select id="judet" name="judet" required>
-                            <option value="">Selectează județul</option>
-                        </select>
-                        <span class="error-message"></span>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="localitate" class="block text-sm font-medium">Localitate</label>
-                        <select id="localitate" name="localitate" required>
-                            <option value="">Selectează localitatea</option>
-                        </select>
-                        <span class="error-message"></span>
-                    </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="form-group">
-                        <label for="strada" class="block text-sm font-medium">Stradă</label>
+                        <label for="strada" class="block text-sm font-medium">Stradă *</label>
                         <input type="text" id="strada" name="strada" maxlength="50" required>
                         <span class="error-message"></span>
                     </div>
 
                     <div class="form-group">
-                        <label for="numar" class="block text-sm font-medium">Număr</label>
+                        <label for="numar" class="block text-sm font-medium">Număr *</label>
                         <input type="text" id="numar" name="numar" maxlength="10" required>
                         <span class="error-message"></span>
                     </div>
@@ -96,7 +78,21 @@
                         <input type="text" id="apartament" name="apartament" maxlength="10">
                     </div>
 
-                    
+                    <div class="form-group">
+                        <label for="judet" class="block text-sm font-medium">Județ *</label>
+                        <select id="judet" name="judet" required>
+                            <option value="">Selectează județul</option>
+                        </select>
+                        <span class="error-message"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="localitate" class="block text-sm font-medium">Localitate *</label>
+                        <select id="localitate" name="localitate" required>
+                            <option value="">Selectează localitatea</option>
+                        </select>
+                        <span class="error-message"></span>
+                    </div>
 
                     <div class="form-group">
                         <label for="codPostal" class="block text-sm font-medium">Cod Poștal</label>
