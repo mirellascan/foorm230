@@ -2,9 +2,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const CONFIG = {
         SIGNATURE_PAD: {
             backgroundColor: 'rgba(0, 0, 0, 0)',  // Transparent background
-                penColor: 'rgb(0, 0, 255)',
-                minWidth: 0.5,
-                maxWidth: 2.5
+            penColor: 'rgb(0, 0, 255)',
+            minWidth: 0.5,
+            maxWidth: 2.5
         },
         PDF: {
             signaturePosition: {
@@ -18,9 +18,10 @@ document.addEventListener('DOMContentLoaded', function() {
         ENDPOINTS: {
             locations: 'localitati.json',
             template: 'pdfbase64.txt',
-            submission: 'https://script.google.com/macros/s/AKfycbxamjkFpSn_Faqn6WBSMnMyiwU58FZyzK89YAokV1Pu9qYlyG9Odg-voS2E9wFiBaUcJA/exec'
+            submission: 'https://script.google.com/macros/s/AKfycbwbrt7VgX01QQUeiqQ1stg_PJ6QEUeXqS6EOG949ZfqloOhvlDbfhQwUzJceb_Wa9XnoA/exec'
         }
     };
+
     // Form Validators
     const validators = {
         nume: {
@@ -69,7 +70,6 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Signature pad canvas not found');
             return;
         }
-
         signaturePad = new SignaturePad(canvas, CONFIG.SIGNATURE_PAD);
         handleCanvasResize();
     }
@@ -90,7 +90,6 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             const response = await fetch(CONFIG.ENDPOINTS.template);
             if (!response.ok) throw new Error('Failed to load PDF template');
-            
             const base64Template = await response.text();
             pdfTemplate = await convertBase64ToBytes(base64Template);
         } catch (error) {
@@ -103,30 +102,24 @@ document.addEventListener('DOMContentLoaded', function() {
     async function initializeLocationDropdowns() {
         const judetSelect = document.getElementById('judet');
         const localitateSelect = document.getElementById('localitate');
-        
         try {
             const response = await fetch(CONFIG.ENDPOINTS.locations);
             if (!response.ok) throw new Error('Failed to fetch location data');
-            
             const locationData = await response.json();
             const judete = [...new Set(locationData.map(item => item.judet))].sort();
-            
             judetSelect.innerHTML = '<option value="">Selectează județul</option>';
             judete.forEach(judet => {
                 const option = new Option(judet, judet);
                 judetSelect.add(option);
             });
-
             judetSelect.addEventListener('change', function() {
                 const selectedJudet = this.value;
                 localitateSelect.innerHTML = '<option value="">Selectează localitatea</option>';
-                
                 if (selectedJudet) {
                     const localitati = locationData
                         .filter(item => item.judet === selectedJudet)
                         .map(item => item.nume)
                         .sort();
-                    
                     localitati.forEach(localitate => {
                         const option = new Option(localitate, localitate);
                         localitateSelect.add(option);
@@ -145,13 +138,10 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             const pdfDoc = await PDFLib.PDFDocument.load(pdfTemplate);
             const form = pdfDoc.getForm();
-
             await fillPDFForm(form, formData);
-
             if (signatureData) {
                 await addSignatureToPDF(pdfDoc, signatureData);
             }
-
             return await pdfDoc.save();
         } catch (error) {
             console.error('PDF generation error:', error);
@@ -160,48 +150,42 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     async function fillPDFForm(form, data) {
-    const textFields = [
-        'nume', 'initialaTatalui', 'prenume', 'cnp', 'strada', 'numar',
-        'bloc', 'scara', 'etaj', 'apartament', 'judet', 'localitate',
-        'codPostal', 'email', 'telefon'
-    ];
-
-    // Fill text fields
-    textFields.forEach(fieldName => {
-        if (data[fieldName]) {
-            try {
-                const field = form.getTextField(fieldName);
-                if (field) field.setText(String(data[fieldName]));
-            } catch (error) {
-                console.warn(`Could not fill field ${fieldName}:`, error);
+        const textFields = [
+            'nume', 'initialaTatalui', 'prenume', 'cnp', 'strada', 'numar',
+            'bloc', 'scara', 'etaj', 'apartament', 'judet', 'localitate',
+            'codPostal', 'email', 'telefon'
+        ];
+        // Fill text fields
+        textFields.forEach(fieldName => {
+            if (data[fieldName]) {
+                try {
+                    const field = form.getTextField(fieldName);
+                    if (field) field.setText(String(data[fieldName]));
+                } catch (error) {
+                    console.warn(`Could not fill field ${fieldName}:`, error);
+                }
             }
+        });
+        // Handle checkboxes
+        try {
+            if (data.perioadaRedirectionare === 2 || data.perioadaRedirectionare === '2') {
+                const periodField = form.getCheckBox('perioada2');
+                if (periodField) periodField.check();
+            }
+            if (data.acordDate) {
+                const acordField = form.getCheckBox('acordDate');
+                if (acordField) acordField.check();
+            }
+        } catch (error) {
+            console.warn('Error handling checkboxes:', error);
         }
-    });
-
-    // Handle checkboxes
-    try {
-        // Check "perioada2" only when data.perioadaRedirectionare is exactly 2
-        if (data.perioadaRedirectionare === 2 || data.perioadaRedirectionare === '2') {
-            const periodField = form.getCheckBox('perioada2');
-            if (periodField) periodField.check();
-        }
-        // Check "acordDate" if data.acordDate is truthy
-        if (data.acordDate) {
-            const acordField = form.getCheckBox('acordDate');
-            if (acordField) acordField.check();
-        }
-    } catch (error) {
-        console.warn('Error handling checkboxes:', error);
     }
-}
-
 
     async function addSignatureToPDF(pdfDoc, signatureData) {
         try {
             const signatureBytes = await fetch(signatureData).then(res => res.arrayBuffer());
             const signatureImage = await pdfDoc.embedPng(signatureBytes);
             const page = pdfDoc.getPages()[0];
-            
             page.drawImage(signatureImage, {
                 x: CONFIG.PDF.signaturePosition.x,
                 y: CONFIG.PDF.signaturePosition.y,
@@ -220,12 +204,10 @@ document.addEventListener('DOMContentLoaded', function() {
         form.addEventListener('input', function(e) {
             const field = e.target;
             const validator = validators[field.name];
-            
             if (validator) {
                 const isValid = validator.validate ? 
                     validator.validate(field.value) : 
                     (field.value === '' && !field.required) || validator.pattern.test(field.value);
-                
                 field.classList.toggle('invalid', !isValid);
                 const errorElement = field.parentElement.querySelector('.error-message');
                 if (errorElement) {
@@ -233,78 +215,82 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         });
+        // Dynamic email requirement based on trimiteEmail checkbox
+        const trimiteEmailCheckbox = document.getElementById('trimiteEmail');
+        const emailInput = document.getElementById('email');
+        // Ensure email is not required by default
+        emailInput.required = false;
+        if (trimiteEmailCheckbox) {
+            trimiteEmailCheckbox.addEventListener('change', function() {
+                if (this.checked) {
+                    emailInput.required = true;
+                } else {
+                    emailInput.required = false;
+                    emailInput.classList.remove('invalid');
+                    const errorElement = emailInput.parentElement.querySelector('.error-message');
+                    if (errorElement) {
+                        errorElement.textContent = '';
+                    }
+                }
+            });
+        }
     }
 
     // Event Handlers
     async function handleFormSubmit(event) {
-    event.preventDefault();
-    
-    if (!event.target.checkValidity()) {
-        event.target.reportValidity();
-        return;
-    }
-
-    if (signaturePad.isEmpty()) {
-        alert('Vă rugăm să adăugați semnătura');
-        return;
-    }
-
-    const submitButton = event.target.querySelector('button[type="submit"]');
-    submitButton.disabled = true;
-    submitButton.textContent = 'Se procesează...';
-
-    try {
-        const formData = new FormData(event.target);
-        const signatureData = signaturePad.toDataURL();
+        event.preventDefault();
         
-        const pdfBytes = await generatePDF(Object.fromEntries(formData), signatureData);
-        const pdfBase64 = await blobToBase64(new Blob([pdfBytes]));
-        
-        // Create a hidden form for submission
-        const hiddenForm = document.createElement('form');
-        hiddenForm.method = 'POST';
-        hiddenForm.action = CONFIG.ENDPOINTS.submission;
-        hiddenForm.target = '_blank'; // This prevents page reload
-
-        // Add the data as hidden fields
-        const dataInput = document.createElement('input');
-        dataInput.type = 'hidden';
-        dataInput.name = 'payload';
-        dataInput.value = JSON.stringify({
-            formData: Object.fromEntries(formData),
-            pdf: pdfBase64,
-            filename: `${formData.get('judet')}_${formData.get('nume')}_${formData.get('prenume')}_formular230.pdf`
-        });
-
-        hiddenForm.appendChild(dataInput);
-        document.body.appendChild(hiddenForm);
-
-        // Submit the form
-        hiddenForm.submit();
-
-        // Clean up the hidden form
-        setTimeout(() => {
-            document.body.removeChild(hiddenForm);
-        }, 500);
-
-        // Show success message
-        alert('Formularul a fost trimis cu succes!');
-        if (formData.get('trimiteEmail')) {
-            alert('Veți primi formularul pe adresa de email specificată.');
+        if (!event.target.checkValidity()) {
+            event.target.reportValidity();
+            return;
         }
-        
-        // Reset the original form
-        event.target.reset();
-        signaturePad.clear();
+        if (signaturePad.isEmpty()) {
+            alert('Vă rugăm să adăugați semnătura');
+            return;
+        }
+        const submitButton = event.target.querySelector('button[type="submit"]');
+        submitButton.disabled = true;
+        submitButton.textContent = 'Se procesează...';
 
-    } catch (error) {
-        console.error('Submission error:', error);
-        alert('Eroare la trimiterea formularului. Vă rugăm să încercați din nou.');
-    } finally {
-        submitButton.disabled = false;
-        submitButton.textContent = 'Completează și trimite formularul';
+        try {
+            const formData = new FormData(event.target);
+            const signatureData = signaturePad.toDataURL();
+            const pdfBytes = await generatePDF(Object.fromEntries(formData), signatureData);
+            const pdfBase64 = await blobToBase64(new Blob([pdfBytes]));
+            
+            // Create a hidden form for submission
+            const hiddenForm = document.createElement('form');
+            hiddenForm.method = 'POST';
+            hiddenForm.action = CONFIG.ENDPOINTS.submission;
+            hiddenForm.target = '_blank'; // This prevents page reload
+            const dataInput = document.createElement('input');
+            dataInput.type = 'hidden';
+            dataInput.name = 'payload';
+            dataInput.value = JSON.stringify({
+                formData: Object.fromEntries(formData),
+                pdf: pdfBase64,
+                filename: `${formData.get('judet')}_${formData.get('nume')}_${formData.get('prenume')}_formular230.pdf`
+            });
+            hiddenForm.appendChild(dataInput);
+            document.body.appendChild(hiddenForm);
+            hiddenForm.submit();
+            setTimeout(() => {
+                document.body.removeChild(hiddenForm);
+            }, 500);
+            alert('Formularul a fost trimis cu succes!');
+            if (formData.get('trimiteEmail')) {
+                alert('Veți primi formularul pe adresa de email specificată.');
+            }
+            event.target.reset();
+            signaturePad.clear();
+        } catch (error) {
+            console.error('Submission error:', error);
+            alert('Eroare la trimiterea formularului. Vă rugăm să încercați din nou.');
+        } finally {
+            submitButton.disabled = false;
+            submitButton.textContent = 'Completează și trimite formularul';
+        }
     }
-}
 
     async function handlePreview() {
         const form = document.getElementById('form230');
@@ -312,25 +298,20 @@ document.addEventListener('DOMContentLoaded', function() {
             form.reportValidity();
             return;
         }
-
         if (signaturePad.isEmpty()) {
             alert('Vă rugăm să adăugați semnătura pentru previzualizare');
             return;
         }
-
         try {
             const formData = new FormData(form);
             const signatureData = signaturePad.toDataURL();
-            
             const pdfBytes = await generatePDF(Object.fromEntries(formData), signatureData);
             const pdfBlob = new Blob([pdfBytes], { type: 'application/pdf' });
             const pdfUrl = URL.createObjectURL(pdfBlob);
-            
             const modal = document.getElementById('previewModal');
             const pdfPreview = document.getElementById('pdfPreview');
             pdfPreview.innerHTML = `<iframe src="${pdfUrl}" width="100%" height="100%" style="border: none;"></iframe>`;
             modal.classList.remove('hidden');
-
             document.getElementById('closePreview').addEventListener('click', () => {
                 URL.revokeObjectURL(pdfUrl);
             }, { once: true });
@@ -345,11 +326,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const cleanBase64 = base64String.replace(/^data:application\/pdf;base64,/, '');
             const binaryString = atob(cleanBase64);
             const bytes = new Uint8Array(binaryString.length);
-            
             for (let i = 0; i < binaryString.length; i++) {
                 bytes[i] = binaryString.charCodeAt(i);
             }
-            
             return bytes;
         } catch (error) {
             console.error('Error converting base64 to bytes:', error);
@@ -373,8 +352,6 @@ document.addEventListener('DOMContentLoaded', function() {
             initializeSignaturePad();
             await initializeLocationDropdowns();
             setupFormValidation();
-            
-            // Event Listeners
             window.addEventListener('resize', handleCanvasResize);
             document.getElementById('clearSignature')?.addEventListener('click', () => signaturePad?.clear());
             document.getElementById('form230')?.addEventListener('submit', handleFormSubmit);
