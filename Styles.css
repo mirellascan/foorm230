@@ -763,11 +763,23 @@ label {
     animation: spin 1s linear infinite;
 }
 
+
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
 
+@media (max-width: 768px) {
+    .flex.justify-between {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    button {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+}
 
 /* Focus state improvements */
 .select2-container--default.select2-container--focus .select2-selection--single {
