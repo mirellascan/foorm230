@@ -88,16 +88,22 @@ document.addEventListener('DOMContentLoaded', function() {
     // Load PDF Template
    async function loadPDFTemplate() {
     try {
-        const response = await fetch("https://mirellascan.github.io/foorm230/pdfbase64.txt", {
+        const response = await fetch(CONFIG.ENDPOINTS.template, {
             headers: {
                 "Accept": "text/plain",
-                "Cache-Control": "no-cache"
+                "Cache-Control": "no-cache" // Prevent caching issues on iOS
             }
         });
 
         if (!response.ok) throw new Error("Failed to load PDF template");
-        
+
         const base64Template = await response.text();
+
+        // Check if the response is empty
+        if (!base64Template || base64Template.length < 100) { // PDF Base64 should be large
+            throw new Error("Invalid PDF template: File is empty or incomplete");
+        }
+
         return await convertBase64ToBytes(base64Template);
     } catch (error) {
         console.error("Error loading PDF template:", error);
