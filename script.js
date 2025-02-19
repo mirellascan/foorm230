@@ -99,54 +99,60 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Location Dropdowns
-    async function initializeLocationDropdowns() {
-    const judetSelect = document.getElementById('judet');
-    const localitateSelect = document.getElementById('localitate');
-    
-    try {
-        const response = await fetch(CONFIG.ENDPOINTS.locations);
-        if (!response.ok) throw new Error('Failed to fetch location data');
-        
-        const locationData = await response.json();
-        const judete = [...new Set(locationData.map(item => item.judet))].sort();
-        
-        judetSelect.innerHTML = '<option value="">Selectează județul</option>';
-        judete.forEach(judet => {
-            const option = new Option(judet, judet);
-            judetSelect.add(option);
-        });
+    $(document).ready(function() {
+  initializeLocationDropdowns();
+  
+  // Initialize Select2 on both selects right away
+  $('#judet').select2({ placeholder: 'Selectează județul' });
+  $('#localitate').select2({ placeholder: 'Selectează localitatea' });
+});
 
-        judetSelect.addEventListener('change', function() {
-            const selectedJudet = this.value;
-            localitateSelect.innerHTML = '<option value="">Selectează localitatea</option>';
-            
-            if (selectedJudet) {
-                const localitati = locationData
-                    .filter(item => item.judet === selectedJudet)
-                    .map(item => item.nume)
-                    .sort();
-                
-                localitati.forEach(localitate => {
-                    const option = new Option(localitate, localitate);
-                    localitateSelect.add(option);
-                });
-            }
-            
-            // Reinitialize Select2 on the localitate dropdown after updating options
-            $('#localitate').select2({ placeholder: 'Selectează localitatea' });
+async function initializeLocationDropdowns() {
+  const judetSelect = document.getElementById('judet');
+  const localitateSelect = document.getElementById('localitate');
+  
+  try {
+    const response = await fetch(CONFIG.ENDPOINTS.locations);
+    if (!response.ok) throw new Error('Failed to fetch location data');
+    
+    const locationData = await response.json();
+    const judete = [...new Set(locationData.map(item => item.judet))].sort();
+    
+    // Populate Județ
+    judetSelect.innerHTML = '<option value="">Selectează județul</option>';
+    judete.forEach(judet => {
+      const option = new Option(judet, judet);
+      judetSelect.add(option);
+    });
+
+    // On Județ change, populate Localitate
+    judetSelect.addEventListener('change', function() {
+      const selectedJudet = this.value;
+      localitateSelect.innerHTML = '<option value="">Selectează localitatea</option>';
+      
+      if (selectedJudet) {
+        const localitati = locationData
+          .filter(item => item.judet === selectedJudet)
+          .map(item => item.nume)
+          .sort();
+        
+        localitati.forEach(localitate => {
+          const option = new Option(localitate, localitate);
+          localitateSelect.add(option);
         });
-    } catch (error) {
-        console.error('Error initializing location dropdowns:', error);
-        judetSelect.innerHTML = '<option value="">Eroare la încărcarea județelor</option>';
-        localitateSelect.innerHTML = '<option value="">Eroare la încărcarea localităților</option>';
-    }
+      }
+
+      // Re-initialize or refresh the Localitate dropdown with Select2
+      $('#localitate').select2({ placeholder: 'Selectează localitatea' });
+    });
+    
+  } catch (error) {
+    console.error('Error initializing location dropdowns:', error);
+    judetSelect.innerHTML = '<option value="">Eroare la încărcarea județelor</option>';
+    localitateSelect.innerHTML = '<option value="">Eroare la încărcarea localităților</option>';
+  }
 }
 
-// Initialize dropdowns and Select2 after the document is ready
-$(document).ready(function() {
-    initializeLocationDropdowns();
-    $('#judet').select2({ placeholder: 'Selectează județul' });
-});
 
 
 
