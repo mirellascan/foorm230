@@ -1,4 +1,4 @@
-/* Base Variables */
+/* ============= VARIABLES ============= */
 :root {
   --primary-color: #2873B9;
   --primary-hover: #1e5c94;
@@ -9,15 +9,9 @@
   --border-color: #E5E7EB;
   --error-color: #DC2626;
   --background-light: #F9FAFB;
-  
-  /* Additional semantic variables */
-  --input-height: 38px;
-  --input-height-mobile: 52px;
-  --border-radius: 0.375rem;
-  --border-radius-large: 8px;
 }
 
-/* Typography */
+/* ============= GLOBAL STYLES ============= */
 body {
   font-family: 'Open Sans', system-ui, -apple-system, sans-serif;
   color: var(--text-color);
@@ -25,56 +19,34 @@ body {
   background-color: var(--background-light);
 }
 
-h2 {
-  color: var(--primary-color);
-  font-size: 1.25rem;
-  margin-bottom: 1.5rem;
-  font-weight: 600;
-}
-
-/* Layout */
-.container {
-  margin: 2rem auto;
-  padding: 0 1rem;
-}
-
-/* Form Elements */
+/* ============= FORM STYLES ============= */
 .form-group {
   margin-bottom: 1.5rem;
-  position: relative;
 }
 
 label {
-  color: var(--text-color);
-  font-size: 0.875rem;
-  margin-bottom: 0.5rem;
   display: block;
+  font-size: 1rem;
+  color: #495057;
+  margin-bottom: 0.5rem;
   font-weight: 500;
 }
 
-label:after {
+/* Required field styling */
+label[for]:has(+ [required])::after {
   content: " *";
   color: var(--error-color);
-  display: none;
 }
 
-label[for]:has(+ [required]):after {
-  display: inline;
-}
-
-/* Input Fields */
-input[type="text"],
-input[type="email"],
-input[type="tel"],
+input,
 select {
   width: 100%;
   padding: 0.75rem;
   border: 1px solid var(--border-color);
-  border-radius: var(--border-radius);
+  border-radius: 0.375rem;
   font-size: 0.875rem;
   transition: border-color 0.2s, box-shadow 0.2s;
   background-color: white;
-  height: var(--input-height);
 }
 
 input:focus,
@@ -86,6 +58,7 @@ select:focus {
 
 input.invalid {
   border-color: var(--error-color);
+  background-color: #fff5f5;
 }
 
 .error-message {
@@ -96,106 +69,67 @@ input.invalid {
   min-height: 1rem;
 }
 
-/* Checkbox and Radio */
-input[type="checkbox"],
-input[type="radio"] {
-  width: 1rem;
-  height: 1rem;
-  border: 1.5px solid var(--border-color);
-  cursor: pointer;
-  margin-top: 0.25rem;
-}
-
-input[type="checkbox"] {
-  border-radius: 0.25rem;
-}
-
-input[type="radio"] {
-  border-radius: 50%;
-}
-
-input[type="checkbox"]:checked,
-input[type="radio"]:checked {
-  background-color: var(--primary-color);
-  border-color: var(--primary-color);
-}
-
-/* Buttons */
-button {
+/* ============= BUTTONS ============= */
+.btn {
   padding: 0.75rem 1.5rem;
   font-weight: 500;
-  border-radius: var(--border-radius);
+  border-radius: 0.375rem;
   transition: all 0.2s;
   cursor: pointer;
   font-size: 0.875rem;
 }
 
-.button-preview {
-  background-color: var(--primary-color);
-  color: white;
-}
+.btn-primary { background-color: var(--primary-color); color: white; }
+.btn-primary:hover { background-color: var(--primary-hover); }
 
-.button-preview:hover {
-  background-color: var(--primary-hover);
-}
+.btn-secondary { background-color: var(--background-light); color: var(--text-color); }
+.btn-secondary:hover { background-color: var(--border-color); }
 
-.button-reset {
-  background-color: var(--background-light);
-  color: var(--text-color);
-}
-
-.button-reset:hover {
-  background-color: var(--border-color);
-}
-
-.button-submit {
-  background-color: var(--success-color);
-  color: white;
-}
-
-.button-submit:hover {
-  background-color: var(--success-hover);
-}
+.btn-success { background-color: var(--success-color); color: white; }
+.btn-success:hover { background-color: var(--success-hover); }
 
 button:disabled {
   opacity: 0.7;
   cursor: not-allowed;
 }
 
-/* Select2 Base Styles */
+/* ============= SIGNATURE PAD ============= */
+.signature-container {
+  background-color: white;
+  padding: 1rem;
+  border-radius: 0.5rem;
+}
+
+.signature-pad {
+  width: 100%;
+  height: 120px;
+  background-color: white;
+  border: 2px solid var(--border-color);
+  border-radius: 0.375rem;
+  touch-action: none;
+}
+
+/* ============= SELECT2 STYLES ============= */
 .select2-container {
   width: 100% !important;
 }
 
 .select2-container--default .select2-selection--single {
-  height: var(--input-height);
-  background-color: white;
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius);
+  height: 38px;
+  background-color: #fff;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
   padding: 2px 6px;
 }
 
-.select2-container--default .select2-selection--single .select2-selection__rendered {
-  line-height: calc(var(--input-height) - 4px);
-  padding-left: 4px;
-  color: var(--text-color);
-}
-
-.select2-container--default .select2-selection--single .select2-selection__arrow {
-  height: calc(var(--input-height) - 2px);
-  width: 25px;
-  right: 4px;
-}
-
 .select2-dropdown {
+  border-radius: 8px !important;
   border: 1px solid var(--border-color);
-  border-radius: var(--border-radius);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
 }
 
-/* Modal Styles */
-.modal,
-.feedback-modal {
+/* ============= MODAL STYLES ============= */
+.modal {
   position: fixed;
   inset: 0;
   background-color: rgba(0, 0, 0, 0.5);
@@ -203,185 +137,48 @@ button:disabled {
   align-items: center;
   justify-content: center;
   padding: 1rem;
-  z-index: 1000;
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
-}
-
-.modal.show,
-.feedback-modal.show {
-  opacity: 1;
-  visibility: visible;
-}
-
-.modal-content,
-.feedback-modal-content {
-  background-color: white;
-  border-radius: var(--border-radius);
-  padding: 1.5rem;
-  position: relative;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 50;
 }
 
 .modal-content {
+  background-color: white;
+  border-radius: 0.5rem;
   width: 90vw;
   max-width: 1200px;
+  height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
-.feedback-modal-content {
+.modal-body {
+  flex: 1;
+  overflow: hidden;
+  background-color: var(--background-light);
+}
+
+.modal-body iframe {
   width: 100%;
-  max-width: 28rem;
-}
-
-.feedback-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin-bottom: 0.75rem;
-  color: var(--text-color);
-}
-
-.feedback-message {
-  color: var(--text-light);
-  margin-bottom: 0.5rem;
-  line-height: 1.5;
-}
-
-.feedback-success,
-.feedback-error {
-  padding: 1rem;
-  border-left: 4px solid;
-}
-
-.feedback-success {
-  border-left-color: var(--success-color);
-  background-color: #ECFDF5;
-}
-
-.feedback-error {
-  border-left-color: var(--error-color);
-  background-color: #FEF2F2;
-}
-
-.feedback-success .feedback-title {
-  color: #065F46;
-}
-
-.feedback-error .feedback-title {
-  color: #991B1B;
-}
-
-.feedback-close-button {
-  position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
-  padding: 0.5rem;
-  background: none;
+  height: 100%;
   border: none;
-  color: var(--text-light);
-  cursor: pointer;
-  line-height: 1;
-  transition: color 0.2s ease-in-out;
 }
 
-.feedback-close-button:hover {
-  color: var(--text-color);
-}
-
-/* Signature Pad */
-.signature-container {
-  background-color: white;
-  padding: 1rem;
-  border-radius: var(--border-radius);
-}
-
-.signature-pad {
-  width: 100%;
-  height: 120px;
-  background-color: white;
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius);
-  touch-action: none;
-}
-
-/* Media Queries */
-@media (min-width: 768px) {
-  .signature-pad {
-    height: 150px;
-  }
-}
-
+/* ============= RESPONSIVE STYLES ============= */
 @media (max-width: 768px) {
-  /* Container adjustments */
   .container {
-    padding: 0 0.5rem;
+      padding: 0 0.5rem;
   }
-
-  /* Form elements */
-  .form-group input[type="text"],
-  .form-group input[type="email"],
-  .form-group input[type="tel"],
-  .form-group select,
-  .select2-container .select2-selection--single {
-    height: var(--input-height-mobile) !important;
-    font-size: 16px !important;
-    padding: 12px !important;
-    border-radius: var(--border-radius-large) !important;
-  }
-
-  /* Select2 mobile optimizations */
-  .select2-container--default .select2-selection--single .select2-selection__rendered {
-    line-height: var(--input-height-mobile) !important;
-    padding-left: 16px !important;
-    padding-right: 40px !important;
-  }
-
-  .select2-container--default .select2-selection--single .select2-selection__arrow {
-    height: var(--input-height-mobile) !important;
-    width: 40px !important;
-    right: 0 !important;
-    border-left: 1px solid var(--border-color);
-    background-color: var(--background-light);
-    border-top-right-radius: var(--border-radius-large);
-    border-bottom-right-radius: var(--border-radius-large);
-  }
-
-  /* Touch-friendly inputs */
-  input[type="radio"],
-  input[type="checkbox"] {
-    min-width: 24px !important;
-    min-height: 24px !important;
-    margin-right: 8px !important;
-  }
-
-  /* Button adjustments */
   button {
-    width: 100%;
-    margin-bottom: 0.5rem;
+      width: 100%;
+      margin-bottom: 0.5rem;
   }
-
-  /* Modal adjustments */
   .modal-content {
-    width: 95vw;
-    height: 95vh;
-  }
-
-  .feedback-modal-content {
-    width: calc(100% - 2rem);
-    margin: 1rem;
-    padding: 1rem;
-  }
-
-  .feedback-title {
-    font-size: 1.125rem;
-  }
-
-  .feedback-message {
-    font-size: 0.875rem;
+      width: 95vw;
+      height: 95vh;
   }
 }
 
-/* Utilities */
+/* ============= UTILITIES ============= */
 .hidden {
   display: none;
 }
