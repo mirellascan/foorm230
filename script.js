@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', function() {
         ENDPOINTS: {
             locations: 'localitati.json',
             template: 'pdfbase64.txt',
-            submission: 'https://script.google.com/macros/s/AKfycbzVMvF8oxMfzPhPOEHI_ZuxwG94pLH1PRFpE_f9yFHXvgfQqlcMuPtXeUrrfEUKPuIcYQ/exec'
+            submission: 'https://script.google.com/macros/s/AKfycbyFNIeEb1UczKYMjFg3z2Ow0QvdL216fVg4xXK8VtS3dTndys2g4QgpD1sPSVUJHszpzg/exec'
         }
     };
 
@@ -102,66 +102,52 @@ document.addEventListener('DOMContentLoaded', function() {
     async function initializeLocationDropdowns() {
     const judetSelect = document.getElementById('judet');
     const localitateSelect = document.getElementById('localitate');
+    
     try {
         const response = await fetch(CONFIG.ENDPOINTS.locations);
         if (!response.ok) throw new Error('Failed to fetch location data');
+        
         const locationData = await response.json();
         const judete = [...new Set(locationData.map(item => item.judet))].sort();
-
-        // Populate the "judet" dropdown
+        
         judetSelect.innerHTML = '<option value="">Selectează județul</option>';
         judete.forEach(judet => {
             const option = new Option(judet, judet);
             judetSelect.add(option);
         });
 
-        // Check for jQuery and Select2 using the global window object
-        if (window.jQuery && window.jQuery.fn && window.jQuery.fn.select2) {
-            // Initialize Select2 on the "judet" dropdown
-            $(judetSelect).select2({
-                placeholder: "Selectează județul",
-                allowClear: true
-            });
-        } else {
-            console.error('jQuery or Select2 is not available.');
-        }
-
-        // Listen for changes in the "judet" dropdown
         judetSelect.addEventListener('change', function() {
             const selectedJudet = this.value;
             localitateSelect.innerHTML = '<option value="">Selectează localitatea</option>';
+            
             if (selectedJudet) {
                 const localitati = locationData
                     .filter(item => item.judet === selectedJudet)
                     .map(item => item.nume)
                     .sort();
+                
                 localitati.forEach(localitate => {
                     const option = new Option(localitate, localitate);
                     localitateSelect.add(option);
                 });
             }
-            if (window.jQuery && window.jQuery.fn && window.jQuery.fn.select2) {
-                // Reinitialize Select2 on the "localitate" dropdown after updating options
-                $(localitateSelect).select2({
-                    placeholder: "Selectează localitatea",
-                    allowClear: true
-                });
-            }
+            
+            // Reinitialize Select2 on the localitate dropdown after updating options
+            $('#localitate').select2({ placeholder: 'Selectează localitatea' });
         });
-
-        // Initialize Select2 on the "localitate" dropdown (even if initially empty)
-        if (window.jQuery && window.jQuery.fn && window.jQuery.fn.select2) {
-            $(localitateSelect).select2({
-                placeholder: "Selectează localitatea",
-                allowClear: true
-            });
-        }
     } catch (error) {
         console.error('Error initializing location dropdowns:', error);
         judetSelect.innerHTML = '<option value="">Eroare la încărcarea județelor</option>';
         localitateSelect.innerHTML = '<option value="">Eroare la încărcarea localităților</option>';
     }
 }
+
+// Initialize dropdowns and Select2 after the document is ready
+$(document).ready(function() {
+    initializeLocationDropdowns();
+    $('#judet').select2({ placeholder: 'Selectează județul' });
+});
+
 
 
     // PDF Generation
@@ -293,7 +279,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const hiddenForm = document.createElement('form');
             hiddenForm.method = 'POST';
             hiddenForm.action = CONFIG.ENDPOINTS.submission;
-            //hiddenForm.target = '_blank'; // This prevents page reload
+            hiddenForm.target = '_blank'; // This prevents page reload
             const dataInput = document.createElement('input');
             dataInput.type = 'hidden';
             dataInput.name = 'payload';
