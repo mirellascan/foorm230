@@ -300,7 +300,7 @@ $(document).ready(function() {
             const hiddenForm = document.createElement('form');
             hiddenForm.method = 'POST';
             hiddenForm.action = CONFIG.ENDPOINTS.submission;
-            hiddenForm.target = '_blank'; // This prevents page reload
+            //hiddenForm.target = '_blank'; // This prevents page reload
             const dataInput = document.createElement('input');
             dataInput.type = 'hidden';
             dataInput.name = 'payload';
