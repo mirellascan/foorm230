@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', function() {
         ENDPOINTS: {
             locations: 'localitati.json',
             template: 'pdfbase64.txt',
-            submission: 'https://script.google.com/macros/s/AKfycbwiWbWsP5wiuusuh9ZakuRZM0qMSwJIjOoKnEnQbFM1Lg92GknTMZcx_0VMkmZDkE7-8g/exec'
+            submission: 'https://script.google.com/macros/s/AKfycbz0_e3dzNWpq20r4-cT9nejW4fdGRFPSZEgRCN9ZTeEOwJSZFO8Yfwvs5et4KrqupYAFA/exec'
         }
     };
 
@@ -328,45 +328,27 @@ async function handleFormSubmit(event) {
             filename: `${formData.get('judet')}_${formData.get('nume')}_${formData.get('prenume')}_formular230.pdf`
         };
 
-        // Create a hidden form for submission
-        const hiddenForm = document.createElement('form');
-        hiddenForm.method = 'POST';
-        hiddenForm.action = CONFIG.ENDPOINTS.submission;
-        hiddenForm.target = '_blank';
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = CONFIG.ENDPOINTS.submission;
 
-        const dataInput = document.createElement('input');
-        dataInput.type = 'hidden';
-        dataInput.name = 'payload';
-        dataInput.value = JSON.stringify(payload);
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'payload';
+        input.value = JSON.stringify(payload);
 
-        hiddenForm.appendChild(dataInput);
-        document.body.appendChild(hiddenForm);
+        form.appendChild(input);
+        document.body.appendChild(form);
+        form.submit();
 
-        // Create and append callback handler
-        window.formCallback = function(response) {
-            try {
-                if (response.success) {
-                    showFeedback('success', 'Formularul a fost procesat cu succes', formData.get('trimiteEmail'));
-                    event.target.reset();
-                    signaturePad.clear();
-                } else {
-                    throw new Error(response.message || 'Eroare la procesarea formularului');
-                }
-            } catch (error) {
-                showFeedback('error', error.message);
-            } finally {
-                submitButton.disabled = false;
-                submitButton.textContent = 'Completează și trimite formularul';
-                delete window.formCallback;
-            }
-        };
-
-        hiddenForm.submit();
-        document.body.removeChild(hiddenForm);
+        showFeedback('success', 'Formularul a fost trimis cu succes');
+        event.target.reset();
+        signaturePad.clear();
 
     } catch (error) {
         console.error('Submission error:', error);
         showFeedback('error', 'Eroare la pregătirea formularului. Vă rugăm să încercați din nou.');
+    } finally {
         submitButton.disabled = false;
         submitButton.textContent = 'Completează și trimite formularul';
     }
