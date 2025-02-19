@@ -160,36 +160,40 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     async function fillPDFForm(form, data) {
-        const textFields = [
-            'nume', 'initialaTatalui', 'prenume', 'cnp', 'strada', 'numar',
-            'bloc', 'scara', 'etaj', 'apartament', 'judet', 'localitate',
-            'codPostal', 'email', 'telefon'
-        ];
+    const textFields = [
+        'nume', 'initialaTatalui', 'prenume', 'cnp', 'strada', 'numar',
+        'bloc', 'scara', 'etaj', 'apartament', 'judet', 'localitate',
+        'codPostal', 'email', 'telefon'
+    ];
 
-        textFields.forEach(fieldName => {
-            if (data[fieldName]) {
-                try {
-                    const field = form.getTextField(fieldName);
-                    if (field) field.setText(String(data[fieldName]));
-                } catch (error) {
-                    console.warn(`Could not fill field ${fieldName}:`, error);
-                }
+    // Fill text fields
+    textFields.forEach(fieldName => {
+        if (data[fieldName]) {
+            try {
+                const field = form.getTextField(fieldName);
+                if (field) field.setText(String(data[fieldName]));
+            } catch (error) {
+                console.warn(`Could not fill field ${fieldName}:`, error);
             }
-        });
-
-        try {
-            if (data.perioadaRedirectionare) {
-                const periodField = form.getCheckBox(`perioada${data.perioadaRedirectionare}`);
-                if (periodField) periodField.check();
-            }
-            if (data.acordDate) {
-                const acordField = form.getCheckBox('acordDate');
-                if (acordField) acordField.check();
-            }
-        } catch (error) {
-            console.warn('Error handling checkboxes:', error);
         }
+    });
+
+    // Handle checkboxes
+    try {
+        // Check "perioada2" only when data.perioadaRedirectionare is exactly 2
+        if (data.perioadaRedirectionare === 2 || data.perioadaRedirectionare === '2') {
+            const periodField = form.getCheckBox('periodField');
+            if (periodField) periodField.check();
+        }
+        // Check "acordDate" if data.acordDate is truthy
+        if (data.acordDate) {
+            const acordField = form.getCheckBox('acordField');
+            if (acordField) acordField.check();
+        }
+    } catch (error) {
+        console.warn('Error handling checkboxes:', error);
     }
+}
 
     async function addSignatureToPDF(pdfDoc, signatureData) {
         try {
