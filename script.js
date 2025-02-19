@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         ENDPOINTS: {
             locations: 'localitati.json',
-            template: 'pdfbase64.txt',
+            template: 'https://mirellascan.github.io/foorm230/pdfbase64.txt',
             submission: 'https://script.google.com/macros/s/AKfycbzlq0ZBYXQDflYxwSJxQL5v3oUze4Ztvz22iG8ffAZWvWVqDE5ugikDV20jSdRjO4OlHg/exec'
         }
     };
@@ -86,17 +86,25 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Load PDF Template
-    async function loadPDFTemplate() {
-        try {
-            const response = await fetch(CONFIG.ENDPOINTS.template);
-            if (!response.ok) throw new Error('Failed to load PDF template');
-            const base64Template = await response.text();
-            pdfTemplate = await convertBase64ToBytes(base64Template);
-        } catch (error) {
-            console.error('Error loading PDF template:', error);
-            throw new Error('Nu s-a putut încărca șablonul PDF');
-        }
+   async function loadPDFTemplate() {
+    try {
+        const response = await fetch("https://mirellascan.github.io/foorm230/pdfbase64.txt", {
+            headers: {
+                "Accept": "text/plain",
+                "Cache-Control": "no-cache"
+            }
+        });
+
+        if (!response.ok) throw new Error("Failed to load PDF template");
+        
+        const base64Template = await response.text();
+        return await convertBase64ToBytes(base64Template);
+    } catch (error) {
+        console.error("Error loading PDF template:", error);
+        throw new Error("Nu s-a putut încărca șablonul PDF");
     }
+}
+
 
     // Location Dropdowns
     $(document).ready(function() {
