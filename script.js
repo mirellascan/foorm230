@@ -107,21 +107,26 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!response.ok) throw new Error('Failed to fetch location data');
         const locationData = await response.json();
         const judete = [...new Set(locationData.map(item => item.judet))].sort();
-
-        // Populate judet dropdown
+        
+        // Populate the "judet" dropdown
         judetSelect.innerHTML = '<option value="">Selectează județul</option>';
         judete.forEach(judet => {
             const option = new Option(judet, judet);
             judetSelect.add(option);
         });
 
-        // Initialize Select2 on the "judet" dropdown
-        $(judetSelect).select2({
-            placeholder: "Selectează județul",
-            allowClear: true
-        });
+        // Ensure jQuery and Select2 are loaded before initializing
+        if (typeof jQuery !== 'undefined' && jQuery.fn.select2) {
+            // Initialize Select2 on the "judet" dropdown
+            $(judetSelect).select2({
+                placeholder: "Selectează județul",
+                allowClear: true
+            });
+        } else {
+            console.error('jQuery or Select2 is not available.');
+        }
 
-        // Populate and initialize localitate dropdown when a judet is selected
+        // Listen for changes in the "judet" dropdown
         judetSelect.addEventListener('change', function() {
             const selectedJudet = this.value;
             localitateSelect.innerHTML = '<option value="">Selectează localitatea</option>';
@@ -136,17 +141,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             }
             // Reinitialize Select2 on the "localitate" dropdown after updating options
+            if (typeof jQuery !== 'undefined' && jQuery.fn.select2) {
+                $(localitateSelect).select2({
+                    placeholder: "Selectează localitatea",
+                    allowClear: true
+                });
+            }
+        });
+
+        // Initialize Select2 on the "localitate" dropdown (even if initially empty)
+        if (typeof jQuery !== 'undefined' && jQuery.fn.select2) {
             $(localitateSelect).select2({
                 placeholder: "Selectează localitatea",
                 allowClear: true
             });
-        });
-
-        // Initialize Select2 on the "localitate" dropdown (initially empty)
-        $(localitateSelect).select2({
-            placeholder: "Selectează localitatea",
-            allowClear: true
-        });
+        }
     } catch (error) {
         console.error('Error initializing location dropdowns:', error);
         judetSelect.innerHTML = '<option value="">Eroare la încărcarea județelor</option>';
