@@ -781,6 +781,27 @@ label {
     }
 }
 
+.select2-container .select2-selection--single {
+    height: 42px !important;  /* Match input field height */
+    display: flex !important;
+    align-items: center !important;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: 40px !important; /* Align text properly */
+    padding-left: 10px !important;
+}
+
+input[type="text"], input[type="email"], input[type="tel"], select {
+    height: 42px !important;  /* Ensures all inputs have equal height */
+}
+.form-group {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+
 /* Focus state improvements */
 .select2-container--default.select2-container--focus .select2-selection--single {
     border-color: #2563eb !important;
