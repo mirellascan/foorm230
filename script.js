@@ -360,6 +360,9 @@ async function handleFormSubmit(event) {
     previewButton.disabled = true;
     submitButton.textContent = 'Se procesează...';
 
+    // Show loading indicator
+    showLoader();
+
     try {
         const formData = new FormData(event.target);
         const signatureData = signaturePad.toDataURL();
@@ -397,12 +400,16 @@ async function handleFormSubmit(event) {
         document.body.appendChild(form);
         form.submit();
 
-        // 3️⃣ Show success message without needing a pop-up
-        showFeedback('success', 'Formularul a fost trimis cu succes', formData.get('trimiteEmail'));
-        event.target.reset();
-        signaturePad.clear();
+        // 3️⃣ Wait for processing (simulate delay for iframe)
+        setTimeout(() => {
+            hideLoader();  // Hide the loader
+            showFeedback('success', 'Formularul a fost trimis cu succes', formData.get('trimiteEmail'));
+            event.target.reset();
+            signaturePad.clear();
+        }, 3000);  // Adjust delay time if needed
 
     } catch (error) {
+        hideLoader();
         console.error('Submission error:', error);
         showFeedback('error', error.message || 'Eroare la pregătirea formularului. Vă rugăm să încercați din nou.');
     } finally {
@@ -413,27 +420,27 @@ async function handleFormSubmit(event) {
         submitButton.textContent = 'Completează și trimite formularul';
     }
 }
-
-// Enhanced feedback function
-function showFeedback(status, message, emailSent = false) {
-    const feedbackModal = document.getElementById('feedbackModal');
-    const feedbackContent = document.getElementById('feedbackContent');
-    
-    if (!feedbackModal || !feedbackContent) return;
-
-    const statusClass = status === 'success' ? 'feedback-success' : 'feedback-error';
-    const title = status === 'success' ? 'Îți mulțumim!' : 'Eroare';
-    
-    feedbackContent.innerHTML = `
-        <div class="${statusClass} p-4 rounded-lg">
-            <h3 class="feedback-title">${title}</h3>
-            <p class="feedback-message">${message}</p>
-            ${emailSent ? '<p class="feedback-message">Veți primi formularul pe adresa de email specificată.</p>' : ''}
+// Show loader function
+function showLoader() {
+    const loader = document.createElement('div');
+    loader.id = 'loader';
+    loader.innerHTML = `
+        <div class="loader-container">
+            <div class="loader"></div>
+            <p>Se procesează, vă rugăm așteptați...</p>
         </div>
     `;
-    
-    feedbackModal.classList.add('show');
+    document.body.appendChild(loader);
 }
+
+// Hide loader function
+function hideLoader() {
+    const loader = document.getElementById('loader');
+    if (loader) {
+        loader.remove();
+    }
+}
+
     async function handlePreview() {
         const form = document.getElementById('form230');
         if (!form.checkValidity()) {
