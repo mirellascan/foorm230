@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', function() {
         ENDPOINTS: {
             locations: 'localitati.json',
             template: 'pdfbase64.txt',
-            submission: 'https://script.google.com/macros/s/AKfycbwbrt7VgX01QQUeiqQ1stg_PJ6QEUeXqS6EOG949ZfqloOhvlDbfhQwUzJceb_Wa9XnoA/exec'
+            submission: 'https://script.google.com/macros/s/AKfycbzVMvF8oxMfzPhPOEHI_ZuxwG94pLH1PRFpE_f9yFHXvgfQqlcMuPtXeUrrfEUKPuIcYQ/exec'
         }
     };
 
