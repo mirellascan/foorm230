@@ -339,6 +339,80 @@ label {
 .select2-container--default .select2-results__option[aria-selected=true] {
     background-color: #e9ecef;
 }
+
+.feedback-modal {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s, visibility 0.2s;
+}
+
+.feedback-modal.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.feedback-content {
+    background-color: white;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    max-width: 28rem;
+    width: 90%;
+    position: relative;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.feedback-close {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    background: none;
+    border: none;
+    padding: 0.5rem;
+    cursor: pointer;
+    color: #666;
+}
+
+.feedback-close:hover {
+    color: #333;
+}
+
+.feedback-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+}
+
+.feedback-message {
+    color: #4B5563;
+    margin-bottom: 1rem;
+}
+
+.feedback-success {
+    border-left: 4px solid #34D399;
+    background-color: #ECFDF5;
+}
+
+.feedback-error {
+    border-left: 4px solid #F87171;
+    background-color: #FEF2F2;
+}
+
+.feedback-success .feedback-title {
+    color: #065F46;
+}
+
+.feedback-error .feedback-title {
+    color: #991B1B;
+}
+
 /* Responsive Adjustments */
 @media (max-width: 768px) {
   .container {
