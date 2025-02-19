@@ -107,7 +107,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!response.ok) throw new Error('Failed to fetch location data');
         const locationData = await response.json();
         const judete = [...new Set(locationData.map(item => item.judet))].sort();
-        
+
         // Populate the "judet" dropdown
         judetSelect.innerHTML = '<option value="">Selectează județul</option>';
         judete.forEach(judet => {
@@ -115,8 +115,8 @@ document.addEventListener('DOMContentLoaded', function() {
             judetSelect.add(option);
         });
 
-        // Ensure jQuery and Select2 are loaded before initializing
-        if (typeof jQuery !== 'undefined' && jQuery.fn.select2) {
+        // Check for jQuery and Select2 using the global window object
+        if (window.jQuery && window.jQuery.fn && window.jQuery.fn.select2) {
             // Initialize Select2 on the "judet" dropdown
             $(judetSelect).select2({
                 placeholder: "Selectează județul",
@@ -140,8 +140,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     localitateSelect.add(option);
                 });
             }
-            // Reinitialize Select2 on the "localitate" dropdown after updating options
-            if (typeof jQuery !== 'undefined' && jQuery.fn.select2) {
+            if (window.jQuery && window.jQuery.fn && window.jQuery.fn.select2) {
+                // Reinitialize Select2 on the "localitate" dropdown after updating options
                 $(localitateSelect).select2({
                     placeholder: "Selectează localitatea",
                     allowClear: true
@@ -150,7 +150,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         // Initialize Select2 on the "localitate" dropdown (even if initially empty)
-        if (typeof jQuery !== 'undefined' && jQuery.fn.select2) {
+        if (window.jQuery && window.jQuery.fn && window.jQuery.fn.select2) {
             $(localitateSelect).select2({
                 placeholder: "Selectează localitatea",
                 allowClear: true
@@ -293,7 +293,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const hiddenForm = document.createElement('form');
             hiddenForm.method = 'POST';
             hiddenForm.action = CONFIG.ENDPOINTS.submission;
-            hiddenForm.target = '_blank'; // This prevents page reload
+            //hiddenForm.target = '_blank'; // This prevents page reload
             const dataInput = document.createElement('input');
             dataInput.type = 'hidden';
             dataInput.name = 'payload';
