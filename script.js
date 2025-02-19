@@ -313,7 +313,13 @@ async function handleFormSubmit(event) {
     }
 
     const submitButton = event.target.querySelector('button[type="submit"]');
+    const resetButton = document.getElementById('resetForm');
+    const previewButton = document.getElementById('previewForm');
+    
+    // Disable all form buttons
     submitButton.disabled = true;
+    resetButton.disabled = true;
+    previewButton.disabled = true;
     submitButton.textContent = 'Se procesează...';
 
     try {
@@ -331,6 +337,7 @@ async function handleFormSubmit(event) {
         const form = document.createElement('form');
         form.method = 'POST';
         form.action = CONFIG.ENDPOINTS.submission;
+        form.target = '_blank';  // Open response in new tab/window
 
         const input = document.createElement('input');
         input.type = 'hidden';
@@ -339,19 +346,55 @@ async function handleFormSubmit(event) {
 
         form.appendChild(input);
         document.body.appendChild(form);
+        
+        // Submit form and show initial feedback
         form.submit();
-
+        document.body.removeChild(form);
+        
         showFeedback('success', 'Formularul a fost trimis cu succes');
+        
+        // Reset form and clear signature
         event.target.reset();
         signaturePad.clear();
+
+        // Reset form state after submission
+        Array.from(event.target.elements).forEach(element => {
+            if (element.tagName === 'SELECT') {
+                $(element).trigger('change');  // Trigger change for Select2
+            }
+        });
 
     } catch (error) {
         console.error('Submission error:', error);
         showFeedback('error', 'Eroare la pregătirea formularului. Vă rugăm să încercați din nou.');
     } finally {
+        // Re-enable all form buttons
         submitButton.disabled = false;
+        resetButton.disabled = false;
+        previewButton.disabled = false;
         submitButton.textContent = 'Completează și trimite formularul';
     }
+}
+
+// Enhanced feedback function
+function showFeedback(status, message, emailSent = false) {
+    const feedbackModal = document.getElementById('feedbackModal');
+    const feedbackContent = document.getElementById('feedbackContent');
+    
+    if (!feedbackModal || !feedbackContent) return;
+
+    const statusClass = status === 'success' ? 'feedback-success' : 'feedback-error';
+    const title = status === 'success' ? 'Îți mulțumim!' : 'Eroare';
+    
+    feedbackContent.innerHTML = `
+        <div class="${statusClass} p-4 rounded-lg">
+            <h3 class="feedback-title">${title}</h3>
+            <p class="feedback-message">${message}</p>
+            ${emailSent ? '<p class="feedback-message">Veți primi formularul pe adresa de email specificată.</p>' : ''}
+        </div>
+    `;
+    
+    feedbackModal.classList.add('show');
 }
     async function handlePreview() {
         const form = document.getElementById('form230');
