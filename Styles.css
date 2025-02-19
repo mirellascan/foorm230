@@ -191,8 +191,11 @@ input[type="radio"]:checked {
     }
 
     .form-group label {
-        font-size: 14px !important;
-        margin-bottom: 8px !important;
+        display: block;  /* Makes sure the label is always visible */
+        margin-bottom: 4px; /* Small spacing between label and field */
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #333;
     }
 
     /* Increase touch target size for radio and checkbox inputs */
