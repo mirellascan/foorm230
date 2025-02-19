@@ -250,6 +250,20 @@ a:hover {
   color: var(--primary-hover);
   text-decoration: underline;
 }
+.select2-dropdown {
+    margin-bottom: 1rem;
+}
+
+.select2-container--default .select2-selection--single {
+    height: 38px;
+    padding: 5px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 36px;
+}
 
 /* Responsive Adjustments */
 @media (max-width: 768px) {
