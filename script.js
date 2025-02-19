@@ -1,10 +1,10 @@
 document.addEventListener('DOMContentLoaded', function() {
     const CONFIG = {
         SIGNATURE_PAD: {
-            backgroundColor: 'rgb(255, 255, 255)',
-            penColor: 'rgb(0, 0, 255)',
-            minWidth: 0.5,
-            maxWidth: 2.5
+            backgroundColor: 'rgba(0, 0, 0, 0)',  // Transparent background
+                penColor: 'rgb(0, 0, 255)',
+                minWidth: 0.5,
+                maxWidth: 2.5
         },
         PDF: {
             signaturePosition: {
