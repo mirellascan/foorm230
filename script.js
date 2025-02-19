@@ -406,7 +406,7 @@ async function handleFormSubmit(event) {
             showFeedback('success', 'Formularul a fost trimis cu succes', formData.get('trimiteEmail'));
             event.target.reset();
             signaturePad.clear();
-        }, 3000);  // Adjust delay time if needed
+        }, 5000);  // Adjust delay time if needed
 
     } catch (error) {
         hideLoader();
