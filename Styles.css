@@ -203,7 +203,16 @@ button:disabled {
   align-items: center;
   justify-content: center;
   padding: 1rem;
-  z-index: 50;
+  z-index: 1000;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
+}
+
+.modal.show,
+.feedback-modal.show {
+  opacity: 1;
+  visibility: visible;
 }
 
 .modal-content,
@@ -211,8 +220,72 @@ button:disabled {
   background-color: white;
   border-radius: var(--border-radius);
   padding: 1.5rem;
+  position: relative;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.modal-content {
   width: 90vw;
   max-width: 1200px;
+}
+
+.feedback-modal-content {
+  width: 100%;
+  max-width: 28rem;
+}
+
+.feedback-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: var(--text-color);
+}
+
+.feedback-message {
+  color: var(--text-light);
+  margin-bottom: 0.5rem;
+  line-height: 1.5;
+}
+
+.feedback-success,
+.feedback-error {
+  padding: 1rem;
+  border-left: 4px solid;
+}
+
+.feedback-success {
+  border-left-color: var(--success-color);
+  background-color: #ECFDF5;
+}
+
+.feedback-error {
+  border-left-color: var(--error-color);
+  background-color: #FEF2F2;
+}
+
+.feedback-success .feedback-title {
+  color: #065F46;
+}
+
+.feedback-error .feedback-title {
+  color: #991B1B;
+}
+
+.feedback-close-button {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  padding: 0.5rem;
+  background: none;
+  border: none;
+  color: var(--text-light);
+  cursor: pointer;
+  line-height: 1;
+  transition: color 0.2s ease-in-out;
+}
+
+.feedback-close-button:hover {
+  color: var(--text-color);
 }
 
 /* Signature Pad */
@@ -291,6 +364,20 @@ button:disabled {
   .modal-content {
     width: 95vw;
     height: 95vh;
+  }
+
+  .feedback-modal-content {
+    width: calc(100% - 2rem);
+    margin: 1rem;
+    padding: 1rem;
+  }
+
+  .feedback-title {
+    font-size: 1.125rem;
+  }
+
+  .feedback-message {
+    font-size: 0.875rem;
   }
 }
 
