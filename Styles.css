@@ -1,4 +1,4 @@
-/* ============= VARIABLES ============= */
+/* Base variables */
 :root {
   --primary-color: #2873B9;
   --primary-hover: #1e5c94;
@@ -11,7 +11,7 @@
   --background-light: #F9FAFB;
 }
 
-/* ============= GLOBAL STYLES ============= */
+/* Typography */
 body {
   font-family: 'Open Sans', system-ui, -apple-system, sans-serif;
   color: var(--text-color);
@@ -19,26 +19,45 @@ body {
   background-color: var(--background-light);
 }
 
-/* ============= FORM STYLES ============= */
-.form-group {
+h2 {
+  color: var(--primary-color);
+  font-size: 1.25rem;
   margin-bottom: 1.5rem;
+  font-weight: 600;
+}
+
+/* Form Container */
+.container {
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+/* Form Elements */
+.form-group {
+  margin-bottom: 1rem;
+  position: relative;
 }
 
 label {
-  display: block;
-  font-size: 1rem;
-  color: #495057;
+  color: var(--text-color);
+  font-size: 0.875rem;
   margin-bottom: 0.5rem;
-  font-weight: 500;
+  display: block;
 }
 
-/* Required field styling */
-label[for]:has(+ [required])::after {
+label:after {
   content: " *";
   color: var(--error-color);
+  display: none;
 }
 
-input,
+label[for]:has(+ [required]):after {
+  display: inline;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="tel"],
 select {
   width: 100%;
   padding: 0.75rem;
@@ -58,7 +77,6 @@ select:focus {
 
 input.invalid {
   border-color: var(--error-color);
-  background-color: #fff5f5;
 }
 
 .error-message {
@@ -69,31 +87,28 @@ input.invalid {
   min-height: 1rem;
 }
 
-/* ============= BUTTONS ============= */
-.btn {
-  padding: 0.75rem 1.5rem;
-  font-weight: 500;
-  border-radius: 0.375rem;
-  transition: all 0.2s;
+/* Checkbox and Radio Styles */
+input[type="checkbox"],
+input[type="radio"] {
+  width: 1rem;
+  height: 1rem;
+  border: 1.5px solid var(--border-color);
+  border-radius: 0.25rem;
   cursor: pointer;
-  font-size: 0.875rem;
+  margin-top: 0.25rem;
 }
 
-.btn-primary { background-color: var(--primary-color); color: white; }
-.btn-primary:hover { background-color: var(--primary-hover); }
-
-.btn-secondary { background-color: var(--background-light); color: var(--text-color); }
-.btn-secondary:hover { background-color: var(--border-color); }
-
-.btn-success { background-color: var(--success-color); color: white; }
-.btn-success:hover { background-color: var(--success-hover); }
-
-button:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
+input[type="radio"] {
+  border-radius: 50%;
 }
 
-/* ============= SIGNATURE PAD ============= */
+input[type="checkbox"]:checked,
+input[type="radio"]:checked {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+/* Signature Pad */
 .signature-container {
   background-color: white;
   padding: 1rem;
@@ -104,31 +119,171 @@ button:disabled {
   width: 100%;
   height: 120px;
   background-color: white;
-  border: 2px solid var(--border-color);
+  border: 1px solid var(--border-color);
   border-radius: 0.375rem;
   touch-action: none;
 }
 
-/* ============= SELECT2 STYLES ============= */
-.select2-container {
-  width: 100% !important;
+@media (min-width: 768px) {
+  .signature-pad {
+      height: 150px;
+  }
 }
 
-.select2-container--default .select2-selection--single {
-  height: 38px;
-  background-color: #fff;
-  border: 1px solid #ced4da;
-  border-radius: 4px;
-  padding: 2px 6px;
+@media (max-width: 768px) {
+    .select2-container {
+        width: 100% !important;
+    }
+
+    .select2-container .select2-selection--single {
+        height: 48px !important;
+        padding: 10px 6px !important;
+        font-size: 16px !important;  /* Prevents iOS zoom on focus */
+        background-color: #ffffff;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        line-height: 28px !important;
+        padding-left: 8px;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 46px !important;
+        right: 8px !important;
+    }
+
+    .select2-dropdown {
+        border-radius: 8px !important;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+        border: 1px solid #e5e7eb !important;
+    }
+
+    .select2-search__field {
+        height: 40px !important;
+        font-size: 16px !important;  /* Prevents iOS zoom on focus */
+        padding: 8px !important;
+    }
+
+    .select2-results__option {
+        padding: 12px 8px !important;
+        font-size: 16px !important;
+    }
+
+    /* Clear button positioning */
+    .select2-container--default .select2-selection--single .select2-selection__clear {
+        height: 46px !important;
+        margin-right: 30px !important;
+        font-size: 20px !important;
+        color: #6b7280 !important;
+    }
 }
 
-.select2-dropdown {
-  border-radius: 8px !important;
-  border: 1px solid var(--border-color);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+/* Enhanced Form Input Styles for Mobile */
+@media (max-width: 768px) {
+    .form-group input[type="text"],
+    .form-group input[type="email"],
+    .form-group input[type="tel"],
+    .form-group select {
+        height: 48px !important;
+        font-size: 16px !important;  /* Prevents iOS zoom on focus */
+        padding: 12px !important;
+        border-radius: 8px !important;
+    }
+
+    .form-group label {
+        font-size: 14px !important;
+        margin-bottom: 8px !important;
+    }
+
+    /* Increase touch target size for radio and checkbox inputs */
+    input[type="radio"],
+    input[type="checkbox"] {
+        min-width: 24px !important;
+        min-height: 24px !important;
+        margin-right: 8px !important;
+    }
+
+    /* Adjust spacing for better mobile readability */
+    .form-group {
+        margin-bottom: 20px !important;
+    }
+
+    .space-y-4 > * + * {
+        margin-top: 20px !important;
+    }
+
+    /* Enhanced error message visibility */
+    .error-message {
+        font-size: 14px !important;
+        padding: 4px 0 !important;
+    }
 }
 
-/* ============= MODAL STYLES ============= */
+/* Clear button styling adjustments */
+.select2-container--default .select2-selection--single .select2-selection__clear {
+    position: absolute;
+    right: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.clear-button {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  color: var(--text-color);
+  background-color: var(--background-light);
+  border-radius: 0.375rem;
+  transition: background-color 0.2s;
+}
+
+.clear-button:hover {
+  background-color: var(--border-color);
+}
+
+/* Buttons */
+button {
+  padding: 0.75rem 1.5rem;
+  font-weight: 500;
+  border-radius: 0.375rem;
+  transition: all 0.2s;
+  cursor: pointer;
+  font-size: 0.875rem;
+}
+
+.button-preview {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.button-preview:hover {
+  background-color: var(--primary-hover);
+}
+
+.button-reset {
+  background-color: var(--background-light);
+  color: var(--text-color);
+}
+
+.button-reset:hover {
+  background-color: var(--border-color);
+}
+
+.button-submit {
+  background-color: var(--success-color);
+  color: white;
+}
+
+.button-submit:hover {
+  background-color: var(--success-hover);
+}
+
+button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Modal Styles */
 .modal {
   position: fixed;
   inset: 0;
@@ -151,6 +306,14 @@ button:disabled {
   overflow: hidden;
 }
 
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
 .modal-body {
   flex: 1;
   overflow: hidden;
@@ -162,99 +325,426 @@ button:disabled {
   height: 100%;
   border: none;
 }
-/* Ensure Select2 elements have proper height */
+
+.close-button {
+  color: var(--text-light);
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+  transition: color 0.2s;
+}
+
+.close-button:hover {
+  color: var(--text-color);
+}
+
+/* Links */
+a {
+  color: var(--primary-color);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+a:hover {
+  color: var(--primary-hover);
+  text-decoration: underline;
+}
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+/* Label styling */
+label {
+    display: block;
+    font-size: 1rem;
+    color: #495057;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+/* Required asterisk styling */
+.required {
+    color: #dc3545;
+    margin-left: 2px;
+}
+
+/* Select2 container sizing */
 .select2-container {
     width: 100% !important;
 }
 
+/* Select2 single selection styling */
 .select2-container--default .select2-selection--single {
-    height: 48px !important;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
-    background-color: #ffffff;
-    display: flex !important;
-    align-items: center !important;
-    padding-left: 12px !important;
-    font-size: 16px !important;
+    height: 38px;
+    background-color: #fff;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    padding: 2px 6px;
+    transition: border-color 0.15s ease-in-out;
 }
 
-/* Ensure the text inside Select2 is properly aligned */
+/* Selection text styling */
 .select2-container--default .select2-selection--single .select2-selection__rendered {
-    line-height: 48px !important;
-    padding-left: 12px !important;
-    padding-right: 40px !important;
-    font-size: 16px !important;
+    color: #212529;
+    line-height: 34px;
+    padding-left: 4px;
+    padding-right: 30px;
 }
 
-/* Ensure clear button (×) is positioned properly */
+/* Dropdown arrow styling */
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 36px;
+    width: 25px;
+    right: 4px;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__arrow b {
+    border-color: #495057 transparent transparent transparent;
+}
+
+/* Clear button (×) styling */
 .select2-container--default .select2-selection--single .select2-selection__clear {
-    position: absolute !important;
-    right: 45px !important;
-    height: 48px !important;
-    width: 30px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    font-size: 22px !important;
-    color: #9ca3af !important;
-    cursor: pointer !important;
-    z-index: 2 !important;
+    color: #6c757d;
+    font-weight: bold;
+    margin-right: 25px;
+    padding: 0 4px;
+    font-size: 16px;
 }
 
-/* Fix the dropdown menu positioning */
+/* Dropdown styling */
 .select2-dropdown {
-    border-radius: 8px !important;
-    border: 1px solid #e5e7eb !important;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 
-                0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
-    margin-top: 4px !important;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-/* Fix search field inside Select2 dropdown */
-.select2-search--dropdown .select2-search__field {
-    height: 44px !important;
-    padding: 8px 12px !important;
-    border: 1px solid #e5e7eb !important;
-    border-radius: 6px !important;
-    font-size: 16px !important;
-    margin: 8px !important;
-    width: calc(100% - 16px) !important;
+/* Search field styling */
+.select2-container--default .select2-search--dropdown .select2-search__field {
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    padding: 6px;
 }
 
-/* Ensure options are spaced properly */
-.select2-results__option {
-    padding: 12px 16px !important;
-    font-size: 16px !important;
-    color: #4b5563 !important;
-    border-bottom: 1px solid #f3f4f6 !important;
+/* Dropdown options styling */
+.select2-container--default .select2-results__option {
+    padding: 6px 12px;
 }
 
 .select2-container--default .select2-results__option--highlighted[aria-selected] {
-    background-color: #f3f4f6 !important;
-    color: #1f2937 !important;
+    background-color: #f8f9fa;
+    color: #16181b;
 }
 
 .select2-container--default .select2-results__option[aria-selected=true] {
-    background-color: #e5e7eb !important;
-    color: #1f2937 !important;
+    background-color: #e9ecef;
 }
 
-/* ============= RESPONSIVE STYLES ============= */
+/* Feedback Modal Styles */
+.feedback-modal {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
+}
+
+.feedback-modal.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.feedback-modal-container {
+    width: 100%;
+    max-width: 28rem;
+    margin: 0 auto;
+}
+
+.feedback-modal-content {
+    background-color: white;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    position: relative;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.feedback-close-button {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    padding: 0.5rem;
+    background: none;
+    border: none;
+    color: #666666;
+    cursor: pointer;
+    line-height: 1;
+    transition: color 0.2s ease-in-out;
+}
+
+.feedback-close-button:hover {
+    color: #333333;
+}
+
+.feedback-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+}
+
+.feedback-message {
+    color: #4B5563;
+    margin-bottom: 0.5rem;
+    line-height: 1.5;
+}
+
+.feedback-success {
+    border-left: 4px solid #34D399;
+    background-color: #ECFDF5;
+    padding: 1rem;
+}
+
+.feedback-error {
+    border-left: 4px solid #EF4444;
+    background-color: #FEF2F2;
+    padding: 1rem;
+}
+
+.feedback-success .feedback-title {
+    color: #065F46;
+}
+
+.feedback-error .feedback-title {
+    color: #991B1B;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 640px) {
+    .feedback-modal-container {
+        max-width: 100%;
+        margin: 1rem;
+    }
+    
+    .feedback-modal-content {
+        padding: 1rem;
+    }
+}
+
+/* Responsive Adjustments */
 @media (max-width: 768px) {
   .container {
       padding: 0 0.5rem;
   }
+
   button {
       width: 100%;
       margin-bottom: 0.5rem;
   }
+
   .modal-content {
       width: 95vw;
       height: 95vh;
   }
 }
+/* Enhanced Select2 Mobile Styling */
+@media (max-width: 768px) {
+    /* Container adjustments */
+    .select2-container {
+        width: 100% !important;
+        margin-bottom: 1rem;
+    }
 
-/* ============= UTILITIES ============= */
+    /* Selection box styling */
+    .select2-container .select2-selection--single {
+        height: 52px !important;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        background-color: #ffffff;
+        position: relative;
+    }
+
+    /* Text input area */
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        line-height: 52px !important;
+        padding-left: 16px !important;
+        padding-right: 40px !important;
+        color: #1f2937;
+        font-size: 16px !important;
+    }
+
+    /* Dropdown arrow positioning */
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 52px !important;
+        width: 40px !important;
+        right: 0 !important;
+        border-left: 1px solid #e5e7eb;
+        background-color: #f9fafb;
+        border-top-right-radius: 8px;
+        border-bottom-right-radius: 8px;
+    }
+
+    /* Clear button (×) enhancement */
+    .select2-container--default .select2-selection--single .select2-selection__clear {
+        position: absolute !important;
+        right: 45px !important;
+        height: 52px !important;
+        width: 30px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        font-size: 22px !important;
+        color: #9ca3af !important;
+        cursor: pointer !important;
+        z-index: 2 !important;
+    }
+
+    /* Dropdown panel improvements */
+    .select2-dropdown {
+        border-radius: 8px !important;
+        border: 1px solid #e5e7eb !important;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 
+                    0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+        margin-top: 4px !important;
+    }
+
+    /* Search field enhancement */
+    .select2-search--dropdown .select2-search__field {
+        height: 44px !important;
+        padding: 8px 12px !important;
+        border: 1px solid #e5e7eb !important;
+        border-radius: 6px !important;
+        font-size: 16px !important;
+        margin: 8px !important;
+        width: calc(100% - 16px) !important;
+    }
+
+    /* Options styling */
+    .select2-results__option {
+        padding: 12px 16px !important;
+        font-size: 16px !important;
+        color: #4b5563 !important;
+        border-bottom: 1px solid #f3f4f6 !important;
+    }
+
+    .select2-container--default .select2-results__option--highlighted[aria-selected] {
+        background-color: #f3f4f6 !important;
+        color: #1f2937 !important;
+    }
+
+    .select2-container--default .select2-results__option[aria-selected=true] {
+        background-color: #e5e7eb !important;
+        color: #1f2937 !important;
+    }
+}
+
+/* Focus state improvements */
+.select2-container--default.select2-container--focus .select2-selection--single {
+    border-color: #2563eb !important;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1) !important;
+}/* Enhanced Select2 Mobile Styling */
+@media (max-width: 768px) {
+    /* Container adjustments */
+    .select2-container {
+        width: 100% !important;
+        margin-bottom: 1rem;
+    }
+
+    /* Selection box styling */
+    .select2-container .select2-selection--single {
+        height: 52px !important;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        background-color: #ffffff;
+        position: relative;
+    }
+
+    /* Text input area */
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        line-height: 52px !important;
+        padding-left: 16px !important;
+        padding-right: 40px !important;
+        color: #1f2937;
+        font-size: 16px !important;
+    }
+
+    /* Dropdown arrow positioning */
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 52px !important;
+        width: 40px !important;
+        right: 0 !important;
+        border-left: 1px solid #e5e7eb;
+        background-color: #f9fafb;
+        border-top-right-radius: 8px;
+        border-bottom-right-radius: 8px;
+    }
+
+    /* Clear button (×) enhancement */
+    .select2-container--default .select2-selection--single .select2-selection__clear {
+        position: absolute !important;
+        right: 45px !important;
+        height: 52px !important;
+        width: 30px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        font-size: 22px !important;
+        color: #9ca3af !important;
+        cursor: pointer !important;
+        z-index: 2 !important;
+    }
+
+    /* Dropdown panel improvements */
+    .select2-dropdown {
+        border-radius: 8px !important;
+        border: 1px solid #e5e7eb !important;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 
+                    0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+        margin-top: 4px !important;
+    }
+
+    /* Search field enhancement */
+    .select2-search--dropdown .select2-search__field {
+        height: 44px !important;
+        padding: 8px 12px !important;
+        border: 1px solid #e5e7eb !important;
+        border-radius: 6px !important;
+        font-size: 16px !important;
+        margin: 8px !important;
+        width: calc(100% - 16px) !important;
+    }
+
+    /* Options styling */
+    .select2-results__option {
+        padding: 12px 16px !important;
+        font-size: 16px !important;
+        color: #4b5563 !important;
+        border-bottom: 1px solid #f3f4f6 !important;
+    }
+
+    .select2-container--default .select2-results__option--highlighted[aria-selected] {
+        background-color: #f3f4f6 !important;
+        color: #1f2937 !important;
+    }
+
+    .select2-container--default .select2-results__option[aria-selected=true] {
+        background-color: #e5e7eb !important;
+        color: #1f2937 !important;
+    }
+}
+
+/* Focus state improvements */
+.select2-container--default.select2-container--focus .select2-selection--single {
+    border-color: #2563eb !important;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1) !important;
+}
+/* Utilities */
 .hidden {
   display: none;
 }
