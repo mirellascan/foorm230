@@ -353,8 +353,8 @@ async function handleFormSubmit(event) {
     const submitButton = event.target.querySelector('button[type="submit"]');
     const resetButton = document.getElementById('resetForm');
     const previewButton = document.getElementById('previewForm');
-    
-    // Disable all form buttons
+
+    // Disable all form buttons during submission
     submitButton.disabled = true;
     resetButton.disabled = true;
     previewButton.disabled = true;
@@ -365,40 +365,42 @@ async function handleFormSubmit(event) {
         const signatureData = signaturePad.toDataURL();
         const pdfBytes = await generatePDF(Object.fromEntries(formData), signatureData);
         const pdfBase64 = await blobToBase64(new Blob([pdfBytes]));
-        
+
         const payload = {
             formData: Object.fromEntries(formData),
             pdf: pdfBase64,
             filename: `${formData.get('judet')}_${formData.get('nume')}_${formData.get('prenume')}_formular230.pdf`
         };
 
-       // Create submission window with specific properties
-        const submissionWindow = window.open('', 'submissionWindow', 
-            'width=500,height=400,menubar=no,toolbar=no,location=no,status=no');
-        
-        if (submissionWindow) {
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = CONFIG.ENDPOINTS.submission;
-            form.target = 'submissionWindow';
-
-            const input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = 'payload';
-            input.value = JSON.stringify(payload);
-
-            form.appendChild(input);
-            document.body.appendChild(form);
-            form.submit();
-            document.body.removeChild(form);
-
-            // Show success feedback in the main window
-            showFeedback('success', 'Formularul a fost trimis cu succes', formData.get('trimiteEmail'));
-            event.target.reset();
-            signaturePad.clear();
-        } else {
-            throw new Error('Nu s-a putut deschide fereastra de procesare. Vă rugăm să permiteți pop-up-urile pentru acest site.');
+        // 1️⃣ Create a hidden iframe dynamically
+        let iframe = document.getElementById('submissionIframe');
+        if (!iframe) {
+            iframe = document.createElement('iframe');
+            iframe.id = 'submissionIframe';
+            iframe.name = 'submissionIframe';
+            iframe.style.display = 'none';
+            document.body.appendChild(iframe);
         }
+
+        // 2️⃣ Create a form dynamically and submit it to the hidden iframe
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = CONFIG.ENDPOINTS.submission;  // Submit to your Google Apps Script
+        form.target = 'submissionIframe';
+
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'payload';
+        input.value = JSON.stringify(payload);
+
+        form.appendChild(input);
+        document.body.appendChild(form);
+        form.submit();
+
+        // 3️⃣ Show success message without needing a pop-up
+        showFeedback('success', 'Formularul a fost trimis cu succes', formData.get('trimiteEmail'));
+        event.target.reset();
+        signaturePad.clear();
 
     } catch (error) {
         console.error('Submission error:', error);
