@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', function() {
         ENDPOINTS: {
             locations: 'localitati.json',
             template: 'pdfbase64.txt',
-            submission: 'https://script.google.com/macros/s/AKfycbw-YSlSpbJvgYOCBa1aKQsdxpSqNj8W0CioBq88ucTKJaSxJ2I0_4Exjt8joU8tLwt3Yg/exec'
+            submission: 'https://script.google.com/macros/s/AKfycby37xNkfdVTkfc-hIuSyFTYLB3nqgGrHLRRe-Afa9CmJHups0xUP4GKGmlyyE_Wa4bq1Q/exec'
         }
     };
 
@@ -334,39 +334,37 @@ async function handleFormSubmit(event) {
             filename: `${formData.get('judet')}_${formData.get('nume')}_${formData.get('prenume')}_formular230.pdf`
         };
 
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = CONFIG.ENDPOINTS.submission;
-        form.target = '_blank';  // Open response in new tab/window
-
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = 'payload';
-        input.value = JSON.stringify(payload);
-
-        form.appendChild(input);
-        document.body.appendChild(form);
+        // Create submission window with specific properties
+        const submissionWindow = window.open('', 'submissionWindow', 
+            'width=500,height=400,menubar=no,toolbar=no,location=no,status=no');
         
-        // Submit form and show initial feedback
-        form.submit();
-        document.body.removeChild(form);
-        
-        showFeedback('success', 'Formularul a fost trimis cu succes');
-        
-        // Reset form and clear signature
-        event.target.reset();
-        signaturePad.clear();
+        if (submissionWindow) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = CONFIG.ENDPOINTS.submission;
+            form.target = 'submissionWindow';
 
-        // Reset form state after submission
-        Array.from(event.target.elements).forEach(element => {
-            if (element.tagName === 'SELECT') {
-                $(element).trigger('change');  // Trigger change for Select2
-            }
-        });
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'payload';
+            input.value = JSON.stringify(payload);
+
+            form.appendChild(input);
+            document.body.appendChild(form);
+            form.submit();
+            document.body.removeChild(form);
+
+            // Show success feedback in the main window
+            showFeedback('success', 'Formularul a fost trimis cu succes', formData.get('trimiteEmail'));
+            event.target.reset();
+            signaturePad.clear();
+        } else {
+            throw new Error('Nu s-a putut deschide fereastra de procesare. Vă rugăm să permiteți pop-up-urile pentru acest site.');
+        }
 
     } catch (error) {
         console.error('Submission error:', error);
-        showFeedback('error', 'Eroare la pregătirea formularului. Vă rugăm să încercați din nou.');
+        showFeedback('error', error.message || 'Eroare la pregătirea formularului. Vă rugăm să încercați din nou.');
     } finally {
         // Re-enable all form buttons
         submitButton.disabled = false;
