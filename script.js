@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', function() {
         ENDPOINTS: {
             locations: 'localitati.json',
             template: 'pdfbase64.txt',
-            submission: 'https://script.google.com/macros/s/AKfycbxmKxUp25JzILMEj-SRFCaLuJuF0-U0vuEvX2hMmJANV9__-bR79nFJeZx9CfMZEmVm/exec'
+            submission: 'https://script.google.com/macros/s/AKfycbwiWbWsP5wiuusuh9ZakuRZM0qMSwJIjOoKnEnQbFM1Lg92GknTMZcx_0VMkmZDkE7-8g/exec'
         }
     };
 
@@ -322,45 +322,47 @@ async function handleFormSubmit(event) {
         const pdfBytes = await generatePDF(Object.fromEntries(formData), signatureData);
         const pdfBase64 = await blobToBase64(new Blob([pdfBytes]));
         
-        const payload = JSON.stringify({
+        const payload = {
             formData: Object.fromEntries(formData),
             pdf: pdfBase64,
             filename: `${formData.get('judet')}_${formData.get('nume')}_${formData.get('prenume')}_formular230.pdf`
-        });
+        };
 
-        // Using XMLHttpRequest for better browser compatibility
-        const xhr = new XMLHttpRequest();
-        xhr.open('POST', CONFIG.ENDPOINTS.submission, true);
-        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-        
-        xhr.onload = function() {
-            if (xhr.status === 200) {
-                try {
-                    const response = JSON.parse(xhr.responseText);
-                    if (response.success) {
-                        showFeedback('success', 'Formularul a fost procesat cu succes', formData.get('trimiteEmail'));
-                        event.target.reset();
-                        signaturePad.clear();
-                    } else {
-                        throw new Error(response.message || 'Eroare la procesarea formularului');
-                    }
-                } catch (error) {
-                    showFeedback('error', 'Eroare la procesarea răspunsului. Vă rugăm să încercați din nou.');
+        // Create a hidden form for submission
+        const hiddenForm = document.createElement('form');
+        hiddenForm.method = 'POST';
+        hiddenForm.action = CONFIG.ENDPOINTS.submission;
+        hiddenForm.target = '_blank';
+
+        const dataInput = document.createElement('input');
+        dataInput.type = 'hidden';
+        dataInput.name = 'payload';
+        dataInput.value = JSON.stringify(payload);
+
+        hiddenForm.appendChild(dataInput);
+        document.body.appendChild(hiddenForm);
+
+        // Create and append callback handler
+        window.formCallback = function(response) {
+            try {
+                if (response.success) {
+                    showFeedback('success', 'Formularul a fost procesat cu succes', formData.get('trimiteEmail'));
+                    event.target.reset();
+                    signaturePad.clear();
+                } else {
+                    throw new Error(response.message || 'Eroare la procesarea formularului');
                 }
-            } else {
-                showFeedback('error', 'Eroare de comunicare cu serverul. Vă rugăm să încercați din nou.');
+            } catch (error) {
+                showFeedback('error', error.message);
+            } finally {
+                submitButton.disabled = false;
+                submitButton.textContent = 'Completează și trimite formularul';
+                delete window.formCallback;
             }
-            submitButton.disabled = false;
-            submitButton.textContent = 'Completează și trimite formularul';
         };
 
-        xhr.onerror = function() {
-            showFeedback('error', 'Eroare de conexiune. Vă rugăm să verificați conexiunea la internet și să încercați din nou.');
-            submitButton.disabled = false;
-            submitButton.textContent = 'Completează și trimite formularul';
-        };
-
-        xhr.send('payload=' + encodeURIComponent(payload));
+        hiddenForm.submit();
+        document.body.removeChild(hiddenForm);
 
     } catch (error) {
         console.error('Submission error:', error);
@@ -369,7 +371,6 @@ async function handleFormSubmit(event) {
         submitButton.textContent = 'Completează și trimite formularul';
     }
 }
-
     async function handlePreview() {
         const form = document.getElementById('form230');
         if (!form.checkValidity()) {
