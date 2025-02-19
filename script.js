@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', function() {
         ENDPOINTS: {
             locations: 'localitati.json',
             template: 'pdfbase64.txt',
-            submission: 'https://script.google.com/macros/s/AKfycbxXocH4dD4IsJjLj2YR9M4AdPNWqRJCQEPgj3-7w7LcMH9Y8Nn9wQiNH1GWIizkKBtuJg/exec'
+            submission: 'https://script.google.com/macros/s/AKfycbxmKxUp25JzILMEj-SRFCaLuJuF0-U0vuEvX2hMmJANV9__-bR79nFJeZx9CfMZEmVm/exec'
         }
     };
 
@@ -322,55 +322,49 @@ async function handleFormSubmit(event) {
         const pdfBytes = await generatePDF(Object.fromEntries(formData), signatureData);
         const pdfBase64 = await blobToBase64(new Blob([pdfBytes]));
         
-        const hiddenForm = document.createElement('form');
-        hiddenForm.method = 'POST';
-        hiddenForm.action = CONFIG.ENDPOINTS.submission;
-        hiddenForm.target = 'submissionFrame'; // Use hidden iframe
-
-        const dataInput = document.createElement('input');
-        dataInput.type = 'hidden';
-        dataInput.name = 'payload';
-        dataInput.value = JSON.stringify({
+        const payload = JSON.stringify({
             formData: Object.fromEntries(formData),
             pdf: pdfBase64,
             filename: `${formData.get('judet')}_${formData.get('nume')}_${formData.get('prenume')}_formular230.pdf`
         });
 
-        hiddenForm.appendChild(dataInput);
-        document.body.appendChild(hiddenForm);
-
-        // Create hidden iframe for submission
-        const iframe = document.createElement('iframe');
-        iframe.name = 'submissionFrame';
-        iframe.style.display = 'none';
-        document.body.appendChild(iframe);
-
-        iframe.onload = function() {
-            try {
-                const response = iframe.contentWindow.document.body.textContent;
-                const result = JSON.parse(response);
-                
-                if (result.success) {
-                    showFeedback('success', 'Formularul a fost procesat cu succes', formData.get('trimiteEmail'));
-                    event.target.reset();
-                    signaturePad.clear();
-                } else {
-                    throw new Error(result.message);
+        // Using XMLHttpRequest for better browser compatibility
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', CONFIG.ENDPOINTS.submission, true);
+        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        
+        xhr.onload = function() {
+            if (xhr.status === 200) {
+                try {
+                    const response = JSON.parse(xhr.responseText);
+                    if (response.success) {
+                        showFeedback('success', 'Formularul a fost procesat cu succes', formData.get('trimiteEmail'));
+                        event.target.reset();
+                        signaturePad.clear();
+                    } else {
+                        throw new Error(response.message || 'Eroare la procesarea formularului');
+                    }
+                } catch (error) {
+                    showFeedback('error', 'Eroare la procesarea răspunsului. Vă rugăm să încercați din nou.');
                 }
-            } catch (error) {
-                showFeedback('error', 'Eroare la procesarea formularului. Vă rugăm să încercați din nou.');
+            } else {
+                showFeedback('error', 'Eroare de comunicare cu serverul. Vă rugăm să încercați din nou.');
             }
-            
-            // Cleanup
-            document.body.removeChild(hiddenForm);
-            document.body.removeChild(iframe);
+            submitButton.disabled = false;
+            submitButton.textContent = 'Completează și trimite formularul';
         };
 
-        hiddenForm.submit();
+        xhr.onerror = function() {
+            showFeedback('error', 'Eroare de conexiune. Vă rugăm să verificați conexiunea la internet și să încercați din nou.');
+            submitButton.disabled = false;
+            submitButton.textContent = 'Completează și trimite formularul';
+        };
+
+        xhr.send('payload=' + encodeURIComponent(payload));
+
     } catch (error) {
         console.error('Submission error:', error);
-        showFeedback('error', 'Eroare la trimiterea formularului. Vă rugăm să încercați din nou.');
-    } finally {
+        showFeedback('error', 'Eroare la pregătirea formularului. Vă rugăm să încercați din nou.');
         submitButton.disabled = false;
         submitButton.textContent = 'Completează și trimite formularul';
     }
