@@ -217,79 +217,81 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Event Handlers
     async function handleFormSubmit(event) {
-        event.preventDefault();
+  event.preventDefault();
 
-        if (!event.target.checkValidity()) {
-            event.target.reportValidity();
-            return;
-        }
+  // 1. Validate your form, check signature, etc. (same as before)
+  if (!event.target.checkValidity()) {
+    event.target.reportValidity();
+    return;
+  }
+  if (signaturePad.isEmpty()) {
+    alert('Vă rugăm să adăugați semnătura');
+    return;
+  }
 
-        if (signaturePad.isEmpty()) {
-            alert('Vă rugăm să adăugați semnătura');
-            return;
-        }
+  // 2. Show loader and disable scrolling
+  const loader = document.getElementById('loader');
+  if (loader) {
+    loader.style.display = 'block';
+    document.body.style.overflow = 'hidden';
+  }
 
-        // Show loader and disable scrolling
-        const loader = document.getElementById('loader');
-        if (loader) {
-            loader.style.display = 'block';
-            document.body.style.overflow = 'hidden';
-        }
+  const submitButton = event.target.querySelector('button[type="submit"]');
+  submitButton.disabled = true;
+  submitButton.textContent = 'Se procesează...';
 
-        const submitButton = event.target.querySelector('button[type="submit"]');
-        submitButton.disabled = true;
-        submitButton.textContent = 'Se procesează...';
+  try {
+    // 3. Gather data
+    const formData = new FormData(event.target);
+    const signatureData = signaturePad.toDataURL();
 
-        try {
-            const formData = new FormData(event.target);
-            const signatureData = signaturePad.toDataURL();
+    // Generate your PDF, get it as base64
+    const pdfBytes = await generatePDF(Object.fromEntries(formData), signatureData);
+    const pdfBase64 = await blobToBase64(new Blob([pdfBytes]));
 
-            const pdfBytes = await generatePDF(Object.fromEntries(formData), signatureData);
-            const pdfBase64 = await blobToBase64(new Blob([pdfBytes]));
+    // 4. Send to Google Apps Script via fetch
+    const response = await fetch(CONFIG.ENDPOINTS.submission, {
+      method: 'POST',
+      body: new URLSearchParams({
+        payload: JSON.stringify({
+          formData: Object.fromEntries(formData),
+          pdf: pdfBase64,
+          filename: `${formData.get('judet')}_${formData.get('nume')}_${formData.get('prenume')}_formular230.pdf`
+        })
+      })
+    });
 
-            const hiddenForm = document.createElement('form');
-            hiddenForm.method = 'POST';
-            hiddenForm.action = CONFIG.ENDPOINTS.submission;
-            hiddenForm.target = '_blank';
+    // 5. (Optional) Check response status or parse text
+    //    If your Apps Script returns HTML or JSON, you can read it here if you want:
+    // const resultHtml = await response.text();
+    // console.log(resultHtml);
 
-            const dataInput = document.createElement('input');
-            dataInput.type = 'hidden';
-            dataInput.name = 'payload';
-            dataInput.value = JSON.stringify({
-                formData: Object.fromEntries(formData),
-                pdf: pdfBase64,
-                filename: `${formData.get('judet')}_${formData.get('nume')}_${formData.get('prenume')}_formular230.pdf`
-            });
-
-            hiddenForm.appendChild(dataInput);
-            document.body.appendChild(hiddenForm);
-
-            hiddenForm.submit();
-
-            setTimeout(() => {
-                document.body.removeChild(hiddenForm);
-            }, 500);
-
-            alert('Formularul a fost trimis cu succes!');
-            if (formData.get('trimiteEmail')) {
-                alert('Veți primi formularul pe adresa de email specificată.');
-            }
-
-            event.target.reset();
-            signaturePad.clear();
-        } catch (error) {
-            console.error('Submission error:', error);
-            alert('Eroare la trimiterea formularului. Vă rugăm să încercați din nou.');
-        } finally {
-            // Hide loader and re-enable scrolling
-            if (loader) {
-                loader.style.display = 'none';
-                document.body.style.overflow = 'auto';
-            }
-            submitButton.disabled = false;
-            submitButton.textContent = 'Completează și trimite formularul';
-        }
+    if (!response.ok) {
+      throw new Error(`Server error: ${response.status}`);
     }
+
+    // 6. All good: show success message, reset form, etc.
+    alert('Formularul a fost trimis cu succes!');
+    if (formData.get('trimiteEmail')) {
+      alert('Veți primi formularul pe adresa de email specificată.');
+    }
+
+    event.target.reset();
+    signaturePad.clear();
+
+  } catch (error) {
+    console.error('Submission error:', error);
+    alert('Eroare la trimiterea formularului. Vă rugăm să încercați din nou.');
+  } finally {
+    // 7. Hide loader and re-enable scrolling
+    if (loader) {
+      loader.style.display = 'none';
+      document.body.style.overflow = 'auto';
+    }
+    submitButton.disabled = false;
+    submitButton.textContent = 'Completează și trimite formularul';
+  }
+}
 
     async function handlePreview() {
         const form = document.getElementById('form230');
