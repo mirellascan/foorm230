@@ -372,7 +372,7 @@ async function handleFormSubmit(event) {
             filename: `${formData.get('judet')}_${formData.get('nume')}_${formData.get('prenume')}_formular230.pdf`
         };
 
-        // Create submission window with specific properties
+       /* // Create submission window with specific properties
         const submissionWindow = window.open('', 'submissionWindow', 
             'width=500,height=400,menubar=no,toolbar=no,location=no,status=no');
         
@@ -402,7 +402,7 @@ async function handleFormSubmit(event) {
 
     } catch (error) {
         console.error('Submission error:', error);
-        showFeedback('error', error.message || 'Eroare la pregătirea formularului. Vă rugăm să încercați din nou.');
+        showFeedback('error', error.message || 'Eroare la pregătirea formularului. Vă rugăm să încercați din nou.');*/
     } finally {
         // Re-enable all form buttons
         submitButton.disabled = false;
