@@ -100,38 +100,60 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Location Dropdowns
     async function initializeLocationDropdowns() {
-        const judetSelect = document.getElementById('judet');
-        const localitateSelect = document.getElementById('localitate');
-        try {
-            const response = await fetch(CONFIG.ENDPOINTS.locations);
-            if (!response.ok) throw new Error('Failed to fetch location data');
-            const locationData = await response.json();
-            const judete = [...new Set(locationData.map(item => item.judet))].sort();
-            judetSelect.innerHTML = '<option value="">Selectează județul</option>';
-            judete.forEach(judet => {
-                const option = new Option(judet, judet);
-                judetSelect.add(option);
+    const judetSelect = document.getElementById('judet');
+    const localitateSelect = document.getElementById('localitate');
+    try {
+        const response = await fetch(CONFIG.ENDPOINTS.locations);
+        if (!response.ok) throw new Error('Failed to fetch location data');
+        const locationData = await response.json();
+        const judete = [...new Set(locationData.map(item => item.judet))].sort();
+
+        // Populate judet dropdown
+        judetSelect.innerHTML = '<option value="">Selectează județul</option>';
+        judete.forEach(judet => {
+            const option = new Option(judet, judet);
+            judetSelect.add(option);
+        });
+
+        // Initialize Select2 on the "judet" dropdown
+        $(judetSelect).select2({
+            placeholder: "Selectează județul",
+            allowClear: true
+        });
+
+        // Populate and initialize localitate dropdown when a judet is selected
+        judetSelect.addEventListener('change', function() {
+            const selectedJudet = this.value;
+            localitateSelect.innerHTML = '<option value="">Selectează localitatea</option>';
+            if (selectedJudet) {
+                const localitati = locationData
+                    .filter(item => item.judet === selectedJudet)
+                    .map(item => item.nume)
+                    .sort();
+                localitati.forEach(localitate => {
+                    const option = new Option(localitate, localitate);
+                    localitateSelect.add(option);
+                });
+            }
+            // Reinitialize Select2 on the "localitate" dropdown after updating options
+            $(localitateSelect).select2({
+                placeholder: "Selectează localitatea",
+                allowClear: true
             });
-            judetSelect.addEventListener('change', function() {
-                const selectedJudet = this.value;
-                localitateSelect.innerHTML = '<option value="">Selectează localitatea</option>';
-                if (selectedJudet) {
-                    const localitati = locationData
-                        .filter(item => item.judet === selectedJudet)
-                        .map(item => item.nume)
-                        .sort();
-                    localitati.forEach(localitate => {
-                        const option = new Option(localitate, localitate);
-                        localitateSelect.add(option);
-                    });
-                }
-            });
-        } catch (error) {
-            console.error('Error initializing location dropdowns:', error);
-            judetSelect.innerHTML = '<option value="">Eroare la încărcarea județelor</option>';
-            localitateSelect.innerHTML = '<option value="">Eroare la încărcarea localităților</option>';
-        }
+        });
+
+        // Initialize Select2 on the "localitate" dropdown (initially empty)
+        $(localitateSelect).select2({
+            placeholder: "Selectează localitatea",
+            allowClear: true
+        });
+    } catch (error) {
+        console.error('Error initializing location dropdowns:', error);
+        judetSelect.innerHTML = '<option value="">Eroare la încărcarea județelor</option>';
+        localitateSelect.innerHTML = '<option value="">Eroare la încărcarea localităților</option>';
     }
+}
+
 
     // PDF Generation
     async function generatePDF(formData, signatureData) {
