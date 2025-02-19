@@ -13,10 +13,10 @@
     <div class="container mx-auto px-4 py-8 max-w-3xl">
         <form id="form230" class="space-y-4 bg-white shadow-md rounded-lg p-6">
             <!-- Personal Information Section -->
-            <div class="space-y-2">
+            <div class="space-y-1">
                 <h2 class="text-xl font-semibold">Date Personale</h2>
                 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div class="form-group">
                         <label for="nume" class="block text-sm font-medium">Nume</label>
                         <input type="text" id="nume" name="nume" maxlength="50" required>
@@ -44,10 +44,10 @@
             </div>
 
             <!-- Address Section -->
-            <div class="space-y-2">
+            <div class="space-y-1">
                 <h2 class="text-xl font-semibold">Adresă</h2>
                 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                        <div class="form-group">
                         <label for="judet" class="form-control select2-dropdown">Județ</label>
                         <select id="judet" name="judet" required>
@@ -105,10 +105,10 @@
             </div>
 
             <!-- Contact Information -->
-            <div class="space-y-2">
+            <div class="space-y-1">
                 <h2 class="text-xl font-semibold">Informații Contact</h2>
                 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div class="form-group">
                         <label for="email" class="block text-sm font-medium">Adresă e-mail</label>
                         <input type="email" id="email" name="email" required>
@@ -124,9 +124,9 @@
             </div>
 
             <!-- Perioada redirectionare -->
-            <div class="space-y-2">
+            <div class="space-y-1">
                 <h2 class="text-xl font-semibold">Perioada redirecționării *</h2>
-                <div class="space-y-2">
+                <div class="space-y-1">
                     <div class="flex items-center">
                         <input type="radio" id="perioada1" name="perioadaRedirectionare" value="1" required>
                         <label for="perioada1" class="ml-2 text-sm">1 an</label>
@@ -139,7 +139,7 @@
             </div>
 
             <!-- Data Communication Agreement -->
-            <div class="space-y-2">
+            <div class="space-y-1">
                 <div class="flex items-start">
                     <input type="checkbox" id="acordDate" name="acordDate" class="mt-1">
                     <label for="acordDate" class="ml-2 text-sm">
@@ -149,7 +149,7 @@
             </div>
 
             <!-- Signature Section -->
-            <div class="space-y-2">
+            <div class="space-y-1">
                 <h2 class="text-xl font-semibold">Semnătură *</h2>
                 <div class="signature-container border rounded-lg p-4">
                     <canvas id="signaturePad" class="signature-pad"></canvas>
@@ -160,7 +160,7 @@
             </div>
 
             <!-- Terms and Email Preferences -->
-            <div class="space-y-2">
+            <div class="space-y-1">
                 <div class="flex items-start">
                     <input type="checkbox" id="termeniSiConditii" name="termeniSiConditii" required class="mt-1">
                     <label for="termeniSiConditii" class="ml-2 text-sm">
@@ -177,7 +177,7 @@
             </div>
 
             <!-- Form Actions -->
-            <div class="flex justify-between gap-2">
+            <div class="flex justify-between gap-5">
                 <button type="button" id="previewForm" class="button-preview">
                     Previzualizează formularul
                 </button>
