@@ -182,18 +182,19 @@ document.addEventListener('DOMContentLoaded', function() {
     try {
         // Check "perioada2" only when data.perioadaRedirectionare is exactly 2
         if (data.perioadaRedirectionare === 2 || data.perioadaRedirectionare === '2') {
-            const periodField = form.getCheckBox('periodField');
+            const periodField = form.getCheckBox('perioada2');
             if (periodField) periodField.check();
         }
         // Check "acordDate" if data.acordDate is truthy
         if (data.acordDate) {
-            const acordField = form.getCheckBox('acordField');
+            const acordField = form.getCheckBox('acordDate');
             if (acordField) acordField.check();
         }
     } catch (error) {
         console.warn('Error handling checkboxes:', error);
     }
 }
+
 
     async function addSignatureToPDF(pdfDoc, signatureData) {
         try {
