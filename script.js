@@ -103,8 +103,47 @@ document.addEventListener('DOMContentLoaded', function() {
   initializeLocationDropdowns();
   
   // Initialize Select2 on both selects right away
-  $('#judet').select2({ placeholder: 'Selectează județul' });
-  $('#localitate').select2({ placeholder: 'Selectează localitatea' });
+  $(document).ready(function() {
+    const isMobile = window.innerWidth <= 768;
+    
+    $('#judet, #localitate').select2({
+        width: '100%',
+        placeholder: 'Selectează...',
+        allowClear: true,
+        closeOnSelect: true,
+        minimumResultsForSearch: isMobile ? 0 : 8,
+        language: {
+            noResults: function() {
+                return "Nu s-au găsit rezultate";
+            },
+            searching: function() {
+                return "Se caută...";
+            }
+        }
+    }).on('select2:opening', function(e) {
+        if (isMobile) {
+            // Ensure proper scroll position on mobile
+            const targetOffset = $(this).closest('.form-group').offset().top;
+            const scrollPosition = targetOffset - 20;
+            $('html, body').animate({
+                scrollTop: scrollPosition
+            }, 300);
+        }
+    }).on('select2:clear', function(e) {
+        // Prevent dropdown from opening on clear
+        e.stopPropagation();
+    });
+
+    // Enhanced mobile clear button handling
+    if (isMobile) {
+        $(document).on('touchstart', '.select2-selection__clear', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const selectElement = $(this).closest('.select2-container').prev('select');
+            selectElement.val(null).trigger('change');
+        });
+    }
+});
 });
 
 async function initializeLocationDropdowns() {
