@@ -580,7 +580,7 @@ label {
 
     /* Dropdown arrow positioning */
     .select2-container--default .select2-selection--single .select2-selection__arrow {
-        height: 52px !important;
+        height: 48px !important;
         width: 40px !important;
         right: 0 !important;
         border-left: 1px solid #e5e7eb;
@@ -677,7 +677,7 @@ label {
 
     /* Dropdown arrow positioning */
     .select2-container--default .select2-selection--single .select2-selection__arrow {
-        height: 52px !important;
+        height: 48px !important;
         width: 40px !important;
         right: 0 !important;
         border-left: 1px solid #e5e7eb;
