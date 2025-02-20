@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', function() {
         ENDPOINTS: {
             locations: 'localitati.json',
             //template: 'https://mirellascan.github.io/foorm230/pdfbase64.txt',
-            submission: 'https://script.google.com/macros/s/AKfycbxhvW1oYoDBjeUZX5PrHAXhHi0TkR2cGm-PmN70lUz-8qss71MXscD-Jd_97Xal02iZKw/exec'
+            submission: 'https://script.google.com/macros/s/AKfycbwbbA_hN9v5hGax7FgQEJb20_9IJjnfE_pADe5GQ7qWOrAsX0NPdl0SGt3p59cnyxICmA/exec'
         }
     };
 
